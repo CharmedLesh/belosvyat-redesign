@@ -1,39 +1,38 @@
 <?php
-/*
-Template Name: One Column
-*/
-?>
-<?php get_header(); ?>
-<div class="art-layout-wrapper">
-    <div class="art-content-layout">
-        <div class="art-content-layout-row">
-            <div class="art-layout-cell art-content">
-			<?php get_sidebar('top'); ?>
-			<?php 
-				if(have_posts()) {
+/**
+ * Template Name: One Column
+ *
+ * Сторінка на всю ширину, без бічної панелі.
+ *
+ * Ім'я файлу та рядок «Template Name» успадковані від старої теми навмисно:
+ * сторінки зберігають ім'я файлу в мета-полі _wp_page_template, тому будь-яке
+ * перейменування скинуло б цей шаблон на вже призначених сторінках.
+ *
+ * @package Belosvyat
+ */
 
-					/* Start the Loop */ 
-					while (have_posts()) {
-						the_post();
-						get_template_part('content', 'page');
-						/* Display comments */
-						if ( theme_get_option('theme_allow_comments')) {
-							comments_template();
-						}
-					}
-					
-				
-				} else {
-				
-					 theme_404_content();
-					 
-				} 
-		    ?>
-			<?php get_sidebar('bottom'); ?>
-              <div class="cleared"></div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="cleared"></div>
-<?php get_footer(); ?>
+defined( 'ABSPATH' ) || exit;
+
+get_header();
+?>
+
+<main id="main" class="content content--wide">
+
+	<?php belosvyat_breadcrumbs(); ?>
+
+	<?php
+	while ( have_posts() ) {
+		the_post();
+
+		get_template_part( 'template-parts/content/content', 'page' );
+
+		if ( comments_open() || get_comments_number() ) {
+			comments_template();
+		}
+	}
+	?>
+
+</main>
+
+<?php
+get_footer();

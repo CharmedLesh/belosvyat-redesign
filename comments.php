@@ -1,83 +1,81 @@
 <?php
-	if (!empty($_SERVER['SCRIPT_FILENAME']) && 'comments.php' == basename($_SERVER['SCRIPT_FILENAME']))
-		die ('Please do not load this page directly. Thanks!');
+/**
+ * Коментарі.
+ *
+ * Стару версію цього файлу було переписано вручну: там не було nonce, поле
+ * e-mail мало підпис «Коментар», а змінні $req і $comment_author
+ * використовувалися неініціалізованими. Тут усе виводиться штатними
+ * функціями WordPress.
+ *
+ * @package Belosvyat
+ */
 
-	if ( post_password_required() ) { ?>
-		<p>Пожалуйста, введите пароль для просмотра комментариев.</p>
-	<?php
-		return;
-	}
+defined( 'ABSPATH' ) || exit;
+
+if ( post_password_required() ) {
+	return;
+}
 ?>
 
-<?php if ( have_comments() ) : ?>
-	<h3><?php comments_number('Отзывов нет', 'Один отзыв', 'Отзывов (%)' );?> на &laquo;<?php the_title(); ?>&raquo;</h3>
+<section id="comments" class="comments">
 
-	<ol class="commentlist">
-	<?php wp_list_comments(); ?>
-	</ol>
+	<?php if ( have_comments() ) : ?>
 
-	<div class="navigation">
-		<div class="alignleft"><?php previous_comments_link() ?></div>
-		<div class="alignright"><?php next_comments_link() ?></div>
-	</div>
- <?php else : // this is displayed if there are no comments so far ?>
+		<h2 class="comments__title">
+			<?php
+			$belosvyat_count = (int) get_comments_number();
 
-	<?php if ( comments_open() ) : ?>
-		<!-- If comments are open, but there are no comments. -->
+			printf(
+				/* translators: %d — кількість коментарів. */
+				esc_html__( '%1$d %2$s', 'belosvyat' ),
+				$belosvyat_count,
+				esc_html( belosvyat_plural( $belosvyat_count, 'коментар', 'коментарі', 'коментарів' ) )
+			);
+			?>
+		</h2>
 
-	 <?php else : // comments are closed ?>
-		<!-- If comments are closed. -->
-		<p>Комментарі закриті.</p>
+		<ol class="comments__list">
+			<?php
+			wp_list_comments(
+				array(
+					'style'       => 'ol',
+					'short_ping'  => true,
+					'avatar_size' => 48,
+				)
+			);
+			?>
+		</ol>
+
+		<?php
+		the_comments_pagination(
+			array(
+				'prev_text' => '<span aria-hidden="true">&larr;</span><span class="screen-reader-text">' . esc_html__( 'Попередні коментарі', 'belosvyat' ) . '</span>',
+				'next_text' => '<span class="screen-reader-text">' . esc_html__( 'Наступні коментарі', 'belosvyat' ) . '</span><span aria-hidden="true">&rarr;</span>',
+			)
+		);
+		?>
 
 	<?php endif; ?>
-<?php endif; ?>
 
+	<?php if ( ! comments_open() && get_comments_number() ) : ?>
+		<p class="comments__closed"><?php esc_html_e( 'Коментування закрито.', 'belosvyat' ); ?></p>
+	<?php endif; ?>
 
-<?php if ( comments_open() ) : ?>
+	<?php
+	comment_form(
+		array(
+			'title_reply'         => __( 'Залишити коментар', 'belosvyat' ),
+			'title_reply_to'      => __( 'Відповісти %s', 'belosvyat' ),
+			'cancel_reply_link'   => __( 'Скасувати відповідь', 'belosvyat' ),
+			'label_submit'        => __( 'Надіслати', 'belosvyat' ),
+			'class_submit'        => 'button',
+			'comment_notes_before' => '<p class="comment-notes">' . esc_html__( 'Ваша електронна адреса не буде опублікована.', 'belosvyat' ) . '</p>',
+			'comment_field'       => sprintf(
+				'<p class="comment-form-comment"><label for="comment">%1$s</label><textarea id="comment" name="comment" cols="45" rows="6" required></textarea></p>',
+				esc_html__( 'Коментар', 'belosvyat' )
+			),
+		)
+	);
+	?>
 
-<div id="respond">
-
-<h3><?php comment_form_title( 'Iмя', 'Ваш відгук на %s' ); ?></h3>
-
-<div class="cancel-comment-reply">
-	<small><?php cancel_comment_reply_link(); ?></small>
-</div>
-
-<?php if ( get_option('comment_registration') && !is_user_logged_in() ) : ?>
-<p>Вы должны <a href="<?php echo wp_login_url( get_permalink() ); ?>">війти</a>, щоб оставити відгук.</p>
-<?php else : ?>
-
-<form action="<?php echo get_option('siteurl'); ?>/wp-comments-post.php" method="post" id="commentform">
-
-<?php if ( is_user_logged_in() ) : ?>
-
-<p>Вы вошли как <a href="<?php echo get_option('siteurl'); ?>/wp-admin/profile.php"><?php echo $user_identity; ?></a>. <a href="<?php echo wp_logout_url(get_permalink()); ?>" title="Вийти з цього аккаунта">Вийти &raquo;</a></p>
-
-<?php else : ?>
-
-<p><input type="text" name="author" id="author" value="<?php echo esc_attr($comment_author); ?>" size="22" tabindex="1" <?php if ($req) echo "aria-required='true'"; ?> />
-<label for="author"><small>Почта(скрита) <?php if ($req) echo "*"; ?></small></label></p>
-
-<p><input type="text" name="email" id="email" value="<?php echo esc_attr($comment_author_email); ?>" size="22" tabindex="2" <?php if ($req) echo "aria-required='true'"; ?> />
-
-
-
-<label for="url"><small>Коментар</small></label></p>
-
-<?php endif; ?>
-
-<!--<p><small><strong>XHTML:</strong> Вы можете использовать следующие теги: <code><?php echo allowed_tags(); ?></code></small></p>-->
-
-<p><textarea name="comment" id="comment" cols="58" rows="10" tabindex="4"></textarea></p>
-
-<p><input name="submit" type="submit" id="submit" tabindex="5" value="Відправити!" />
-<?php comment_id_fields(); ?>
-</p>
-<?php do_action('comment_form', $post->ID); ?>
-
-</form>
-
-<?php endif; // If registration required and not logged in ?>
-</div>
-
-<?php endif; // if you delete this the sky will fall on your head ?>
+</section>

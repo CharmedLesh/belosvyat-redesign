@@ -1,68 +1,86 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" <?php language_attributes(); ?>>
-<head profile="http://gmpg.org/xfn/11">
-<meta http-equiv="Content-Type" content="<?php bloginfo('html_type') ?>; charset=<?php bloginfo('charset') ?>" />
-<title><?php wp_title( '|', true, 'right' ); bloginfo( 'name' ); ?></title>
-<link rel="stylesheet" href="<?php bloginfo('stylesheet_url') ?>" type="text/css" media="screen" />
-<!--[if IE 6]><link rel="stylesheet" href="<?php bloginfo('template_url'); ?>/style.ie6.css" type="text/css" media="screen" /><![endif]-->
-<!--[if IE 7]><link rel="stylesheet" href="<?php bloginfo('template_url'); ?>/style.ie7.css" type="text/css" media="screen" /><![endif]-->
-<?php if(WP_VERSION < 3.0): ?>
-<link rel="alternate" type="application/rss+xml" title="<?php printf(__('%s RSS Feed', THEME_NS), get_bloginfo('name')); ?>" href="<?php bloginfo('rss2_url'); ?>" />
-<link rel="alternate" type="application/atom+xml" title="<?php printf(__('%s Atom Feed', THEME_NS), get_bloginfo('name')); ?>" href="<?php bloginfo('atom_url'); ?>" />
-<?php endif; ?>
-<link rel="pingback" href="<?php bloginfo('pingback_url'); ?>" />
 <?php
-remove_action('wp_head', 'wp_generator');
-wp_enqueue_script('jquery');
-if ( is_singular() && get_option( 'thread_comments' ) ) {
-	wp_enqueue_script( 'comment-reply' );
-}
-wp_head(); ?>
-<script type="text/javascript" src="<?php bloginfo('template_url'); ?>/script.js"></script>
+/**
+ * Шапка сайту.
+ *
+ * @package Belosvyat
+ */
+
+defined( 'ABSPATH' ) || exit;
+?>
+<!doctype html>
+<html <?php language_attributes(); ?>>
+<head>
+	<meta charset="<?php bloginfo( 'charset' ); ?>" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="profile" href="https://gmpg.org/xfn/11" />
+	<?php wp_head(); ?>
 </head>
-<body <?php if(function_exists('body_class')) body_class(); ?>>
-<div id="art-page-background-glare-wrapper">
-    <div id="art-page-background-glare"></div>
-</div>
-<div id="art-main">
-    <div class="cleared reset-box"></div>
-    <div class="art-header">
-        <div class="art-header-position">
-            <div class="art-header-wrapper">
-                <div class="cleared reset-box"></div>
-                <div class="art-header-inner">
-                <div class="art-logo">
-                <?php if(theme_get_option('theme_header_show_headline')): ?>
-                <?php $headline = theme_get_option('theme_'.(is_single()?'single':'posts').'_headline_tag'); ?>
-                <<?php echo $headline; ?> class="art-logo-name"><a href="<?php echo get_option('home'); ?>/"><?php bloginfo('name'); ?></a></<?php echo $headline; ?>>
-                <?php endif; ?>
-                <?php if(theme_get_option('theme_header_show_slogan')): ?>
-                <?php $slogan = theme_get_option('theme_'.(is_single()?'single':'posts').'_slogan_tag'); ?>
-                    <<?php echo $slogan; ?> class="art-logo-text"><?php bloginfo('description'); ?></<?php echo $slogan; ?>>
-                <?php endif; ?>
-                </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="cleared reset-box"></div>
-    <div class="art-bar art-nav">
-        <div class="art-nav-outer">
-        <div class="art-nav-wrapper">
-        <div class="art-nav-inner">
-    	<?php 
-    		echo theme_get_menu(array(
-    				'source' => theme_get_option('theme_menu_source'),
-    				'depth' => theme_get_option('theme_menu_depth'),
-    				'menu' => 'primary-menu',
-    				'class' => 'art-hmenu'	
-    			)
-    		);
-    	?>
-        </div>
-        </div>
-        </div>
-    </div>
-    <div class="cleared reset-box"></div>
-    <div class="art-box art-sheet">
-        <div class="art-box-body art-sheet-body">
+
+<body <?php body_class(); ?>>
+<?php wp_body_open(); ?>
+
+<a class="skip-link screen-reader-text" href="#main"><?php esc_html_e( 'Перейти до основного вмісту', 'belosvyat' ); ?></a>
+
+<div class="site">
+
+	<header class="site-header" id="site-header">
+		<div class="site-header__inner container">
+
+			<div class="brand">
+				<?php belosvyat_site_branding(); ?>
+			</div>
+
+			<nav class="primary-nav" id="primary-nav" aria-label="<?php esc_attr_e( 'Головне меню', 'belosvyat' ); ?>">
+				<?php
+				if ( has_nav_menu( 'primary-menu' ) ) {
+					wp_nav_menu(
+						array(
+							'theme_location' => 'primary-menu',
+							'container'      => false,
+							'menu_class'     => 'primary-nav__list',
+							'depth'          => 3,
+							'walker'         => new Belosvyat_Nav_Walker(),
+						)
+					);
+				} else {
+					printf(
+						'<p class="primary-nav__empty"><a href="%s">%s</a></p>',
+						esc_url( admin_url( 'nav-menus.php' ) ),
+						esc_html__( 'Створити меню', 'belosvyat' )
+					);
+				}
+				?>
+			</nav>
+
+			<div class="site-header__actions">
+				<button type="button" class="icon-button" id="search-toggle" aria-expanded="false" aria-controls="site-search">
+					<span class="screen-reader-text"><?php esc_html_e( 'Пошук по сайту', 'belosvyat' ); ?></span>
+					<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+						<circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="2" />
+						<path d="M13.5 13.5 18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+					</svg>
+				</button>
+
+				<button type="button" class="icon-button menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="primary-nav">
+					<span class="screen-reader-text"><?php esc_html_e( 'Меню', 'belosvyat' ); ?></span>
+					<span class="menu-toggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>
+				</button>
+			</div>
+
+		</div>
+
+		<div class="site-search" id="site-search" hidden>
+			<div class="container">
+				<?php get_search_form(); ?>
+			</div>
+		</div>
+	</header>
+
+	<?php
+	if ( is_front_page() && ! is_paged() && belosvyat_hero_is_enabled() ) {
+		get_template_part( 'template-parts/hero' );
+	}
+	?>
+
+	<div class="site-content" id="content">
+		<div class="container layout">

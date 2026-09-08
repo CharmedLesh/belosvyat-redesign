@@ -1,0 +1,1856 @@
+/*
+ * Білобережжя Святослава — основний стиль теми.
+ *
+ * Порядок секцій:
+ *   1. Токени
+ *   2. Скидання та базова типографіка
+ *   3. Утиліти й кнопки
+ *   4. Шапка та навігація
+ *   5. Банер
+ *   6. Макет, «пігулки», хлібні крихти
+ *   7. Картки записів
+ *   8. Одиночний запис
+ *   9. Бічна панель і віджети
+ *  10. Підвал
+ *  11. Коментарі, форми, пагінація
+ *  12. Сумісність зі старим контентом
+ *  13. Друк і зменшена анімація
+ */
+
+/* ------------------------------------------------------------------ *
+ * 1. Токени
+ * ------------------------------------------------------------------ */
+
+:root {
+	--c-primary: #1e5b45;
+	--c-primary-dark: #143d2e;
+	--c-accent: #3e8e6b;
+	--c-accent-soft: #e6f0ea;
+	--c-sand: #e8e0d2;
+	--c-sand-light: #f4efe6;
+	--c-ink: #1b2420;
+	--c-muted: #5c6b63;
+	--c-line: #dfe4e0;
+	--c-surface: #fbfaf7;
+	--c-white: #fff;
+
+	--radius-sm: 8px;
+	--radius: 12px;
+	--radius-lg: 16px;
+	--radius-pill: 999px;
+
+	--shadow-sm: 0 1px 2px rgb(20 61 46 / 6%), 0 1px 3px rgb(20 61 46 / 4%);
+	--shadow: 0 4px 6px -1px rgb(20 61 46 / 7%), 0 2px 4px -2px rgb(20 61 46 / 5%);
+	--shadow-lg: 0 12px 24px -8px rgb(20 61 46 / 14%), 0 4px 8px -4px rgb(20 61 46 / 8%);
+
+	--container: 1200px;
+	--gutter: clamp(1rem, 4vw, 2rem);
+	--sidebar-width: 320px;
+	--layout-gap: clamp(1.75rem, 3vw, 3rem);
+
+	--font-body: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial, "Noto Sans", sans-serif;
+	--font-heading: var(--font-body);
+	--font-mono: ui-monospace, sfmono-regular, menlo, consolas, "Liberation Mono", monospace;
+
+	/* Плавна типографічна шкала. */
+	--step--1: clamp(0.82rem, 0.79rem + 0.13vw, 0.89rem);
+	--step-0: clamp(1rem, 0.96rem + 0.18vw, 1.09rem);
+	--step-1: clamp(1.2rem, 1.13rem + 0.33vw, 1.4rem);
+	--step-2: clamp(1.44rem, 1.32rem + 0.58vw, 1.8rem);
+	--step-3: clamp(1.73rem, 1.53rem + 0.95vw, 2.3rem);
+	--step-4: clamp(2.07rem, 1.76rem + 1.5vw, 2.95rem);
+	--step-5: clamp(2.49rem, 2rem + 2.35vw, 3.8rem);
+
+	--transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. Скидання та базова типографіка
+ * ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	scroll-behavior: smooth;
+	scroll-padding-top: 6rem;
+}
+
+body {
+	margin: 0;
+	background: var(--c-surface);
+	color: var(--c-ink);
+	font-family: var(--font-body);
+	font-size: var(--step-0);
+	line-height: 1.7;
+	-webkit-font-smoothing: antialiased;
+	overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0 0 0.5em;
+	font-family: var(--font-heading);
+	font-weight: 700;
+	line-height: 1.22;
+	letter-spacing: -0.015em;
+	text-wrap: balance;
+}
+
+h1 { font-size: var(--step-4); }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-2); }
+h4 { font-size: var(--step-1); }
+h5,
+h6 { font-size: var(--step-0); }
+
+p,
+ul,
+ol,
+dl,
+figure,
+blockquote,
+pre,
+table {
+	margin: 0 0 1.25rem;
+}
+
+a {
+	color: var(--c-primary);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.18em;
+	transition: color var(--transition);
+}
+
+a:hover,
+a:focus {
+	color: var(--c-accent);
+}
+
+img,
+svg,
+video,
+iframe,
+embed,
+object {
+	max-width: 100%;
+	height: auto;
+}
+
+img {
+	display: block;
+}
+
+:focus-visible {
+	outline: 3px solid var(--c-accent);
+	outline-offset: 2px;
+	border-radius: 3px;
+}
+
+hr {
+	height: 1px;
+	margin: 2.5rem 0;
+	border: 0;
+	background: var(--c-line);
+}
+
+code,
+kbd,
+pre {
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+}
+
+pre {
+	padding: 1rem 1.25rem;
+	overflow-x: auto;
+	background: var(--c-sand-light);
+	border-radius: var(--radius);
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. Утиліти й кнопки
+ * ------------------------------------------------------------------ */
+
+.container {
+	width: 100%;
+	max-width: var(--container);
+	margin-inline: auto;
+	padding-inline: var(--gutter);
+}
+
+.screen-reader-text {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.skip-link:focus {
+	position: fixed !important;
+	top: 0.75rem;
+	left: 0.75rem;
+	z-index: 999;
+	width: auto;
+	height: auto;
+	margin: 0;
+	padding: 0.75rem 1.25rem;
+	clip: auto;
+	clip-path: none;
+	background: var(--c-primary);
+	color: var(--c-white);
+	border-radius: var(--radius-sm);
+	box-shadow: var(--shadow-lg);
+	text-decoration: none;
+}
+
+.button,
+.wp-block-button__link,
+input[type="submit"],
+button.submit {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.7rem 1.5rem;
+	border: 1px solid transparent;
+	border-radius: var(--radius-pill);
+	background: var(--c-primary);
+	color: var(--c-white);
+	font: inherit;
+	font-weight: 600;
+	line-height: 1.2;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+.button:hover,
+.button:focus,
+input[type="submit"]:hover,
+button.submit:hover {
+	background: var(--c-primary-dark);
+	color: var(--c-white);
+	transform: translateY(-1px);
+	box-shadow: var(--shadow);
+}
+
+.button--light {
+	background: var(--c-white);
+	color: var(--c-primary-dark);
+}
+
+.button--light:hover,
+.button--light:focus {
+	background: var(--c-sand-light);
+	color: var(--c-primary-dark);
+}
+
+.button--ghost {
+	background: transparent;
+	border-color: var(--c-line);
+	color: var(--c-primary);
+}
+
+.button--ghost:hover,
+.button--ghost:focus {
+	background: var(--c-accent-soft);
+	color: var(--c-primary-dark);
+}
+
+.icon-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-pill);
+	background: var(--c-white);
+	color: var(--c-ink);
+	cursor: pointer;
+	transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.icon-button:hover,
+.icon-button:focus {
+	background: var(--c-accent-soft);
+	border-color: var(--c-accent);
+	color: var(--c-primary-dark);
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. Шапка та навігація
+ * ------------------------------------------------------------------ */
+
+.site-header {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: var(--c-white);
+	border-bottom: 1px solid var(--c-line);
+	transition: box-shadow var(--transition);
+}
+
+.site-header.is-stuck {
+	box-shadow: var(--shadow);
+}
+
+.site-header__inner {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	min-height: 72px;
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin-right: auto;
+	min-width: 0;
+}
+
+.brand__logo img {
+	width: auto;
+	max-height: 52px;
+}
+
+.brand__title {
+	margin: 0;
+	font-size: var(--step-0);
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+}
+
+.brand__title a {
+	color: var(--c-primary-dark);
+	text-decoration: none;
+}
+
+.brand__tagline {
+	margin: 0;
+	color: var(--c-muted);
+	font-size: var(--step--1);
+}
+
+.site-header__actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+/* Навігація — мобільна за замовчуванням. */
+
+.primary-nav {
+	position: fixed;
+	inset: 72px 0 auto;
+	z-index: 90;
+	max-height: calc(100dvh - 72px);
+	padding: 0.5rem var(--gutter) 1.5rem;
+	overflow-y: auto;
+	background: var(--c-white);
+	border-bottom: 1px solid var(--c-line);
+	box-shadow: var(--shadow-lg);
+	visibility: hidden;
+	opacity: 0;
+	transform: translateY(-8px);
+	transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+}
+
+.menu-open .primary-nav {
+	visibility: visible;
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.primary-nav__list,
+.primary-nav .sub-menu {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.primary-nav li {
+	position: relative;
+	border-bottom: 1px solid var(--c-line);
+}
+
+.primary-nav .sub-menu li:last-child {
+	border-bottom: 0;
+}
+
+.primary-nav .menu-link {
+	display: block;
+	padding: 0.85rem 3rem 0.85rem 0;
+	color: var(--c-ink);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.primary-nav .menu-link:hover,
+.primary-nav .menu-link:focus,
+.primary-nav .current-menu-item > .menu-link,
+.primary-nav .current-menu-ancestor > .menu-link {
+	color: var(--c-primary);
+}
+
+.submenu-toggle {
+	position: absolute;
+	top: 0.4rem;
+	right: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--c-muted);
+	cursor: pointer;
+}
+
+.submenu-toggle__icon {
+	transition: transform var(--transition);
+}
+
+.submenu-toggle[aria-expanded="true"] .submenu-toggle__icon {
+	transform: rotate(180deg);
+}
+
+.primary-nav .sub-menu {
+	display: none;
+	padding-left: 1rem;
+	border-top: 1px solid var(--c-line);
+}
+
+.primary-nav li.is-open > .sub-menu {
+	display: block;
+}
+
+.primary-nav .sub-menu .menu-link {
+	font-weight: 500;
+}
+
+.menu-toggle__bars {
+	display: grid;
+	gap: 4px;
+	width: 18px;
+}
+
+.menu-toggle__bars span {
+	display: block;
+	height: 2px;
+	background: currentcolor;
+	border-radius: 2px;
+	transition: transform var(--transition), opacity var(--transition);
+}
+
+.menu-open .menu-toggle__bars span:nth-child(1) {
+	transform: translateY(6px) rotate(45deg);
+}
+
+.menu-open .menu-toggle__bars span:nth-child(2) {
+	opacity: 0;
+}
+
+.menu-open .menu-toggle__bars span:nth-child(3) {
+	transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Панель пошуку. */
+
+.site-search {
+	padding-block: 1rem;
+	background: var(--c-sand-light);
+	border-top: 1px solid var(--c-line);
+}
+
+/* Навігація — десктоп. */
+
+@media (min-width: 1024px) {
+	.primary-nav {
+		position: static;
+		max-height: none;
+		padding: 0;
+		overflow: visible;
+		background: transparent;
+		border: 0;
+		box-shadow: none;
+		visibility: visible;
+		opacity: 1;
+		transform: none;
+	}
+
+	.primary-nav__list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	.primary-nav > .primary-nav__list > li {
+		border-bottom: 0;
+	}
+
+	.primary-nav > .primary-nav__list > li > .menu-link {
+		padding: 0.55rem 0.85rem;
+		border-radius: var(--radius-pill);
+		font-size: var(--step--1);
+		white-space: nowrap;
+	}
+
+	.primary-nav > .primary-nav__list > li > .menu-link:hover,
+	.primary-nav > .primary-nav__list > li > .menu-link:focus,
+	.primary-nav > .primary-nav__list > li.current-menu-item > .menu-link,
+	.primary-nav > .primary-nav__list > li.current-menu-ancestor > .menu-link {
+		background: var(--c-accent-soft);
+		color: var(--c-primary-dark);
+	}
+
+	.primary-nav > .primary-nav__list > li.menu-item-has-children > .menu-link {
+		padding-right: 2rem;
+	}
+
+	.primary-nav > .primary-nav__list > li > .submenu-toggle {
+		top: 50%;
+		right: 0.35rem;
+		width: 24px;
+		height: 24px;
+		transform: translateY(-50%);
+	}
+
+	.primary-nav .sub-menu {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		z-index: 20;
+		display: block;
+		min-width: 260px;
+		padding: 0.5rem;
+		background: var(--c-white);
+		border: 1px solid var(--c-line);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow-lg);
+		visibility: hidden;
+		opacity: 0;
+		transform: translateY(6px);
+		transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+	}
+
+	.primary-nav li:hover > .sub-menu,
+	.primary-nav li:focus-within > .sub-menu,
+	.primary-nav li.is-open > .sub-menu {
+		visibility: visible;
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.primary-nav .sub-menu .sub-menu {
+		top: -0.5rem;
+		left: 100%;
+	}
+
+	.primary-nav .sub-menu li {
+		border-bottom: 0;
+	}
+
+	.primary-nav .sub-menu .menu-link {
+		padding: 0.55rem 0.75rem;
+		border-radius: var(--radius-sm);
+		font-size: var(--step--1);
+	}
+
+	.primary-nav .sub-menu .menu-link:hover,
+	.primary-nav .sub-menu .menu-link:focus {
+		background: var(--c-accent-soft);
+	}
+
+	.menu-toggle {
+		display: none;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * 5. Банер
+ * ------------------------------------------------------------------ */
+
+.hero {
+	position: relative;
+	isolation: isolate;
+	padding-block: clamp(2.5rem, 6vw, 4.5rem);
+	background: linear-gradient(135deg, var(--c-primary-dark) 0%, var(--c-primary) 45%, var(--c-accent) 100%);
+	color: var(--c-white);
+	overflow: hidden;
+}
+
+/* Ледь помітний «рельєф» — щоб градієнт не був пласким. */
+.hero::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	background-image:
+		radial-gradient(circle at 15% 20%, rgb(255 255 255 / 10%) 0, transparent 45%),
+		radial-gradient(circle at 85% 75%, rgb(255 255 255 / 8%) 0, transparent 40%);
+}
+
+.hero--has-image::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background-image: linear-gradient(180deg, rgb(20 61 46 / 72%), rgb(20 61 46 / 82%)), var(--hero-image);
+	background-position: center;
+	background-size: cover;
+}
+
+.hero__inner {
+	max-width: 780px;
+}
+
+.hero__eyebrow {
+	margin: 0 0 0.75rem;
+	color: rgb(255 255 255 / 78%);
+	font-size: var(--step--1);
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.hero__title {
+	margin: 0 0 1rem;
+	color: var(--c-white);
+	/* Назва парку довга — step-5 робив би банер на весь екран. */
+	font-size: var(--step-4);
+	max-width: 20ch;
+}
+
+.hero__subtitle {
+	margin: 0 0 1.75rem;
+	max-width: 62ch;
+	color: rgb(255 255 255 / 88%);
+	font-size: var(--step-1);
+	line-height: 1.5;
+}
+
+.hero__actions {
+	margin: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. Макет, «пігулки», хлібні крихти
+ * ------------------------------------------------------------------ */
+
+.site {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+.site-content {
+	flex: 1 0 auto;
+	padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+
+.layout {
+	display: grid;
+	gap: var(--layout-gap);
+	align-items: start;
+}
+
+@media (min-width: 1024px) {
+	.has-sidebar .layout {
+		grid-template-columns: minmax(0, 1fr) var(--sidebar-width);
+	}
+}
+
+.content {
+	min-width: 0;
+}
+
+.content--wide {
+	max-width: 900px;
+	margin-inline: auto;
+}
+
+.page-header {
+	margin-bottom: 2rem;
+	padding-bottom: 1.5rem;
+	border-bottom: 1px solid var(--c-line);
+}
+
+.page-header__title {
+	margin: 0;
+	font-size: var(--step-4);
+}
+
+.page-header__query {
+	color: var(--c-primary);
+}
+
+.page-header__description {
+	margin: 0.75rem 0 0;
+	color: var(--c-muted);
+}
+
+.page-header__search {
+	margin-top: 1.5rem;
+	max-width: 520px;
+}
+
+.chips {
+	margin-bottom: 2rem;
+}
+
+.chips__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.4rem 0.9rem;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-pill);
+	color: var(--c-ink);
+	font-size: var(--step--1);
+	font-weight: 500;
+	text-decoration: none;
+	transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.chip:hover,
+.chip:focus,
+.chip.is-current {
+	background: var(--c-primary);
+	border-color: var(--c-primary);
+	color: var(--c-white);
+}
+
+.chip__count {
+	color: var(--c-muted);
+	font-size: 0.85em;
+	font-variant-numeric: tabular-nums;
+}
+
+.chip:hover .chip__count,
+.chip:focus .chip__count,
+.chip.is-current .chip__count {
+	color: rgb(255 255 255 / 75%);
+}
+
+.breadcrumbs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	margin-bottom: 1.5rem;
+	color: var(--c-muted);
+	font-size: var(--step--1);
+}
+
+.breadcrumbs a {
+	text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+	text-decoration: underline;
+}
+
+.breadcrumbs__sep {
+	color: var(--c-line);
+}
+
+/* ------------------------------------------------------------------ *
+ * 7. Картки записів
+ * ------------------------------------------------------------------ */
+
+.entry-grid {
+	display: grid;
+	gap: 1.5rem;
+	margin-bottom: 2.5rem;
+}
+
+/* Без бічної панелі стрічка стає двоколонковою. */
+.no-sidebar .entry-grid {
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.entry--card {
+	display: grid;
+	grid-template-rows: auto 1fr;
+	overflow: hidden;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-sm);
+	transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.entry--card:hover {
+	transform: translateY(-2px);
+	border-color: var(--c-accent);
+	box-shadow: var(--shadow-lg);
+}
+
+.entry__media {
+	display: block;
+	aspect-ratio: 16 / 10;
+	overflow: hidden;
+	background: var(--c-sand-light);
+}
+
+.entry__media .entry__image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.entry--card:hover .entry__image {
+	transform: scale(1.03);
+}
+
+.entry__media--placeholder {
+	aspect-ratio: 16 / 10;
+	background: linear-gradient(135deg, var(--c-sand-light), var(--c-accent-soft));
+}
+
+.entry__body {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	padding: 1.35rem 1.5rem 1.5rem;
+}
+
+.entry__meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	color: var(--c-muted);
+	font-size: var(--step--1);
+}
+
+.entry__meta-sep {
+	color: var(--c-line);
+}
+
+.entry__category {
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.entry--card .entry__title {
+	margin: 0;
+	font-size: var(--step-1);
+	line-height: 1.3;
+}
+
+.entry--card .entry__title a {
+	color: var(--c-ink);
+	text-decoration: none;
+}
+
+.entry--card .entry__title a:hover,
+.entry--card .entry__title a:focus {
+	color: var(--c-primary);
+}
+
+.entry__excerpt {
+	color: var(--c-muted);
+}
+
+.entry__excerpt p {
+	margin: 0;
+}
+
+.entry__more {
+	margin-top: auto;
+	padding-top: 0.35rem;
+	color: var(--c-primary);
+	font-size: var(--step--1);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.entry__more:hover,
+.entry__more:focus {
+	text-decoration: underline;
+}
+
+/* На широких екранах картка у стрічці з панеллю — горизонтальна. */
+@media (min-width: 700px) {
+	.has-sidebar .entry--card {
+		grid-template-columns: 300px minmax(0, 1fr);
+		grid-template-rows: none;
+	}
+
+	.has-sidebar .entry--card .entry__media,
+	.has-sidebar .entry--card .entry__media--placeholder {
+		height: 100%;
+		aspect-ratio: auto;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * 8. Одиночний запис
+ * ------------------------------------------------------------------ */
+
+.entry--single,
+.entry--page,
+.entry--attachment {
+	max-width: 100%;
+}
+
+.entry--single .entry__header,
+.entry--page .entry__header,
+.entry--attachment .entry__header {
+	margin-bottom: 1.75rem;
+}
+
+.entry--single .entry__title,
+.entry--page .entry__title,
+.entry--attachment .entry__title {
+	margin: 0 0 0.75rem;
+	font-size: var(--step-4);
+}
+
+.entry__featured,
+.entry__attachment {
+	margin: 0 0 2rem;
+}
+
+.entry__featured-image,
+.entry__attachment-image {
+	width: 100%;
+	border-radius: var(--radius-lg);
+}
+
+.entry__featured figcaption,
+.entry__attachment figcaption {
+	margin-top: 0.6rem;
+	color: var(--c-muted);
+	font-size: var(--step--1);
+	text-align: center;
+}
+
+.entry__content > * {
+	max-width: 760px;
+}
+
+.entry__content > .alignwide {
+	max-width: 1000px;
+}
+
+.entry__content > .alignfull {
+	max-width: none;
+}
+
+.entry__content h2,
+.entry__content h3,
+.entry__content h4 {
+	margin-top: 2rem;
+}
+
+.entry__content ul,
+.entry__content ol {
+	padding-left: 1.4rem;
+}
+
+.entry__content li + li {
+	margin-top: 0.35rem;
+}
+
+.entry__content blockquote {
+	margin-inline: 0;
+	padding: 0.25rem 0 0.25rem 1.25rem;
+	border-left: 4px solid var(--c-accent);
+	color: var(--c-muted);
+	font-style: italic;
+}
+
+.entry__footer {
+	margin-top: 2.5rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid var(--c-line);
+}
+
+.entry__tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	align-items: center;
+	font-size: var(--step--1);
+}
+
+.entry__tags-label {
+	color: var(--c-muted);
+}
+
+.entry__tags a {
+	padding: 0.25rem 0.7rem;
+	background: var(--c-accent-soft);
+	border-radius: var(--radius-pill);
+	text-decoration: none;
+}
+
+.post-navigation {
+	margin: 2.5rem 0;
+}
+
+.post-navigation .nav-links {
+	display: grid;
+	gap: 1rem;
+}
+
+@media (min-width: 700px) {
+	.post-navigation .nav-links {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+
+.post-navigation a {
+	display: block;
+	height: 100%;
+	padding: 1rem 1.25rem;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius);
+	text-decoration: none;
+	transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.post-navigation a:hover {
+	border-color: var(--c-accent);
+	box-shadow: var(--shadow);
+}
+
+.post-navigation .nav-next {
+	text-align: right;
+}
+
+.post-nav__label {
+	display: block;
+	margin-bottom: 0.25rem;
+	color: var(--c-muted);
+	font-size: var(--step--1);
+}
+
+.post-nav__title {
+	display: block;
+	color: var(--c-ink);
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+/* ------------------------------------------------------------------ *
+ * 9. Бічна панель і віджети
+ * ------------------------------------------------------------------ */
+
+.sidebar {
+	display: grid;
+	gap: 1.25rem;
+	min-width: 0;
+}
+
+@media (min-width: 1024px) {
+	.sidebar {
+		position: sticky;
+		top: 92px;
+		max-height: calc(100vh - 108px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+	}
+}
+
+.widget {
+	padding: 1.25rem 1.35rem;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-sm);
+	font-size: var(--step--1);
+}
+
+.widget__title {
+	margin: 0 0 0.9rem;
+	padding-bottom: 0.6rem;
+	border-bottom: 2px solid var(--c-accent-soft);
+	font-size: var(--step-0);
+	font-weight: 700;
+}
+
+.widget ul,
+.widget ol {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.widget li {
+	padding: 0.4rem 0;
+	border-bottom: 1px solid var(--c-line);
+}
+
+.widget li:last-child {
+	border-bottom: 0;
+}
+
+.widget li a {
+	text-decoration: none;
+}
+
+.widget li a:hover,
+.widget li a:focus {
+	text-decoration: underline;
+}
+
+.widget .children,
+.widget .sub-menu {
+	padding-left: 0.9rem;
+	border-top: 1px solid var(--c-line);
+}
+
+.widget select,
+.widget input[type="text"],
+.widget input[type="search"] {
+	width: 100%;
+}
+
+.widget img {
+	border-radius: var(--radius-sm);
+}
+
+/* Календар — частий віджет на цьому сайті. */
+.widget .wp-block-calendar table,
+.widget #wp-calendar {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: var(--step--1);
+}
+
+.widget #wp-calendar caption {
+	padding-bottom: 0.5rem;
+	color: var(--c-muted);
+	font-weight: 600;
+}
+
+.widget #wp-calendar th,
+.widget #wp-calendar td {
+	padding: 0.3rem;
+	border: 1px solid var(--c-line);
+	text-align: center;
+}
+
+.widget #wp-calendar th {
+	background: var(--c-sand-light);
+}
+
+.widget #wp-calendar td a {
+	font-weight: 700;
+}
+
+.content-widgets {
+	display: grid;
+	gap: 1.25rem;
+	margin-bottom: 2rem;
+}
+
+/* ------------------------------------------------------------------ *
+ * 10. Підвал
+ * ------------------------------------------------------------------ */
+
+.site-footer {
+	flex-shrink: 0;
+	margin-top: clamp(2.5rem, 6vw, 4.5rem);
+	background: var(--c-primary-dark);
+	color: rgb(255 255 255 / 82%);
+}
+
+.site-footer a {
+	color: var(--c-white);
+}
+
+.site-footer__widgets {
+	display: grid;
+	gap: 2rem;
+	padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+
+@media (min-width: 700px) {
+	.site-footer__widgets[data-columns="2"] { grid-template-columns: repeat(2, 1fr); }
+	.site-footer__widgets[data-columns="3"] { grid-template-columns: repeat(3, 1fr); }
+	.site-footer__widgets[data-columns="4"] { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+	.site-footer__widgets[data-columns="4"] { grid-template-columns: repeat(4, 1fr); }
+}
+
+.site-footer .widget {
+	padding: 0;
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	color: inherit;
+}
+
+.site-footer .widget__title {
+	border-bottom-color: rgb(255 255 255 / 18%);
+	color: var(--c-white);
+}
+
+.site-footer .widget li {
+	border-bottom-color: rgb(255 255 255 / 12%);
+}
+
+.site-footer__bar {
+	border-top: 1px solid rgb(255 255 255 / 14%);
+}
+
+.site-footer__bar-inner {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	align-items: center;
+	justify-content: space-between;
+	padding-block: 1.25rem;
+	font-size: var(--step--1);
+}
+
+.site-footer__copyright {
+	margin: 0;
+}
+
+.footer-nav__list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.to-top {
+	position: fixed;
+	right: 1.25rem;
+	bottom: 1.25rem;
+	z-index: 80;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	background: var(--c-primary);
+	border: 0;
+	border-radius: var(--radius-pill);
+	box-shadow: var(--shadow-lg);
+	color: var(--c-white);
+	cursor: pointer;
+}
+
+.to-top:hover,
+.to-top:focus {
+	background: var(--c-primary-dark);
+}
+
+/* ------------------------------------------------------------------ *
+ * 11. Коментарі, форми, пагінація
+ * ------------------------------------------------------------------ */
+
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+select,
+textarea {
+	width: 100%;
+	max-width: 100%;
+	padding: 0.65rem 0.9rem;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-sm);
+	color: var(--c-ink);
+	font: inherit;
+	font-size: var(--step--1);
+	transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	border-color: var(--c-accent);
+	box-shadow: 0 0 0 3px var(--c-accent-soft);
+	outline: none;
+}
+
+label {
+	display: block;
+	margin-bottom: 0.35rem;
+	font-size: var(--step--1);
+	font-weight: 600;
+}
+
+.search-form {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.search-form__field {
+	flex: 1 1 auto;
+	border-radius: var(--radius-pill);
+}
+
+.search-form__submit {
+	flex: 0 0 auto;
+	padding: 0.65rem 1.35rem;
+	background: var(--c-primary);
+	border: 1px solid var(--c-primary);
+	border-radius: var(--radius-pill);
+	color: var(--c-white);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background var(--transition);
+}
+
+.search-form__submit:hover,
+.search-form__submit:focus {
+	background: var(--c-primary-dark);
+}
+
+.comments {
+	margin-top: 3rem;
+	padding-top: 2rem;
+	border-top: 1px solid var(--c-line);
+}
+
+.comments__title {
+	font-size: var(--step-2);
+}
+
+.comments__list,
+.comments__list .children {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.comments__list .children {
+	margin-top: 1rem;
+	padding-left: clamp(1rem, 4vw, 2.5rem);
+	border-left: 2px solid var(--c-line);
+}
+
+.comments__list .comment-body {
+	margin-bottom: 1.25rem;
+	padding: 1.25rem;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius);
+}
+
+.comments__list .comment-author {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	font-weight: 600;
+}
+
+.comments__list .comment-author img {
+	border-radius: var(--radius-pill);
+}
+
+.comments__list .comment-meta {
+	margin-bottom: 0.75rem;
+	color: var(--c-muted);
+	font-size: var(--step--1);
+}
+
+.comment-respond {
+	margin-top: 2rem;
+	padding: 1.5rem;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-lg);
+}
+
+.comment-reply-title {
+	margin-top: 0;
+	font-size: var(--step-2);
+}
+
+.comment-notes,
+.comment-form-cookies-consent label {
+	color: var(--c-muted);
+	font-size: var(--step--1);
+	font-weight: 400;
+}
+
+.comment-form-cookies-consent {
+	display: flex;
+	gap: 0.5rem;
+	align-items: flex-start;
+}
+
+.comment-form-cookies-consent input {
+	width: auto;
+	margin-top: 0.35rem;
+}
+
+.pagination,
+.wp-pagenavi,
+.comments-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	align-items: center;
+	justify-content: center;
+	margin-block: 2.5rem;
+}
+
+.pagination .page-numbers,
+.wp-pagenavi a,
+.wp-pagenavi span,
+.comments-pagination .page-numbers {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 42px;
+	height: 42px;
+	padding-inline: 0.75rem;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-sm);
+	color: var(--c-ink);
+	font-weight: 600;
+	text-decoration: none;
+	transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.pagination .page-numbers:hover,
+.wp-pagenavi a:hover,
+.comments-pagination .page-numbers:hover {
+	background: var(--c-accent-soft);
+	border-color: var(--c-accent);
+}
+
+.pagination .page-numbers.current,
+.wp-pagenavi span.current,
+.comments-pagination .page-numbers.current {
+	background: var(--c-primary);
+	border-color: var(--c-primary);
+	color: var(--c-white);
+}
+
+.pagination .page-numbers.dots {
+	background: transparent;
+	border-color: transparent;
+}
+
+.page-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	align-items: center;
+	margin-top: 2rem;
+}
+
+.page-links__label {
+	color: var(--c-muted);
+	font-size: var(--step--1);
+}
+
+.page-links a,
+.page-links > .post-page-numbers {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	height: 36px;
+	background: var(--c-white);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-sm);
+	text-decoration: none;
+}
+
+.page-links > .post-page-numbers.current {
+	background: var(--c-primary);
+	border-color: var(--c-primary);
+	color: var(--c-white);
+}
+
+.no-results {
+	max-width: 640px;
+	margin-inline: auto;
+	padding-block: clamp(2rem, 6vw, 4rem);
+	text-align: center;
+}
+
+.no-results__title {
+	font-size: var(--step-4);
+}
+
+.no-results__text {
+	color: var(--c-muted);
+}
+
+.no-results__search {
+	margin: 1.75rem 0;
+}
+
+.no-results .chips__list {
+	justify-content: center;
+}
+
+/* ------------------------------------------------------------------ *
+ * 12. Сумісність зі старим контентом
+ *
+ * Записи 2012–2025 років містять розмітку старого редактора: float-
+ * вирівнювання, [gallery], <table> з фіксованою шириною, інлайнові
+ * width/height та порожні <p>. Нижче — правила, які не дають цьому
+ * ламати сучасний макет.
+ * ------------------------------------------------------------------ */
+
+.entry__content img,
+.widget img {
+	height: auto;
+}
+
+/* Інлайнові розміри зі старого редактора не мають розпирати колонку. */
+.entry__content img[width],
+.entry__content img[height] {
+	max-width: 100%;
+}
+
+.entry__content iframe,
+.entry__content embed,
+.entry__content object,
+.entry__content video {
+	max-width: 100%;
+}
+
+.alignleft {
+	float: left;
+	margin: 0.35rem 1.5rem 1rem 0;
+}
+
+.alignright {
+	float: right;
+	margin: 0.35rem 0 1rem 1.5rem;
+}
+
+.aligncenter {
+	display: block;
+	margin-inline: auto;
+}
+
+.alignnone {
+	height: auto;
+	max-width: 100%;
+}
+
+/* На вузьких екранах float лише шкодить читабельності. */
+@media (max-width: 600px) {
+	.alignleft,
+	.alignright {
+		float: none;
+		display: block;
+		margin: 0 auto 1.25rem;
+	}
+}
+
+.entry__content::after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
+.wp-caption {
+	max-width: 100%;
+	margin-bottom: 1.5rem;
+	padding: 0;
+	background: var(--c-sand-light);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+.wp-caption img {
+	width: 100%;
+	max-width: 100%;
+	height: auto;
+}
+
+.wp-caption-text,
+.wp-caption-dd {
+	margin: 0;
+	padding: 0.6rem 0.9rem;
+	color: var(--c-muted);
+	font-size: var(--step--1);
+	line-height: 1.45;
+	text-align: center;
+}
+
+/* Класична галерея через [gallery]. */
+.gallery {
+	display: grid;
+	gap: 0.75rem;
+	margin-bottom: 1.75rem;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.gallery-columns-1 { grid-template-columns: 1fr; }
+.gallery-columns-2 { grid-template-columns: repeat(2, 1fr); }
+
+@media (min-width: 700px) {
+	.gallery-columns-3 { grid-template-columns: repeat(3, 1fr); }
+	.gallery-columns-4 { grid-template-columns: repeat(4, 1fr); }
+	.gallery-columns-5 { grid-template-columns: repeat(5, 1fr); }
+	.gallery-columns-6 { grid-template-columns: repeat(6, 1fr); }
+}
+
+.gallery-item {
+	width: auto !important; /* WordPress друкує інлайновий width у відсотках. */
+	margin: 0 !important;
+	text-align: center;
+}
+
+.gallery-item img,
+.gallery-icon img {
+	width: 100%;
+	aspect-ratio: 1 / 1;
+	object-fit: cover;
+	border: 0 !important;
+	border-radius: var(--radius-sm);
+	transition: opacity var(--transition);
+}
+
+.gallery-item img:hover {
+	opacity: 0.85;
+}
+
+.gallery-caption {
+	display: block;
+	margin-top: 0.35rem;
+	color: var(--c-muted);
+	font-size: var(--step--1);
+	line-height: 1.4;
+}
+
+/* Старі таблиці — горизонтальний скрол замість розпирання сторінки. */
+.table-scroll {
+	max-width: 100%;
+	margin-bottom: 1.5rem;
+	overflow-x: auto;
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius);
+}
+
+.table-scroll > table {
+	margin: 0;
+	border: 0;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: var(--step--1);
+}
+
+th,
+td {
+	padding: 0.6rem 0.85rem;
+	border: 1px solid var(--c-line);
+	text-align: left;
+	vertical-align: top;
+}
+
+th {
+	background: var(--c-sand-light);
+	font-weight: 700;
+}
+
+tbody tr:nth-child(even) {
+	background: rgb(232 224 210 / 22%);
+}
+
+/* Реліквії старого редактора. */
+.entry__content font {
+	font-size: inherit !important;
+	font-family: inherit !important;
+}
+
+.entry__content p:empty,
+.entry__content div:empty {
+	display: none;
+}
+
+.entry__content [style*="width"] {
+	max-width: 100%;
+}
+
+/* Кнопки шерингу AddToAny не мають ламати ритм тексту. */
+.entry__content .addtoany_share_save_container {
+	margin-block: 1.5rem;
+}
+
+/* ------------------------------------------------------------------ *
+ * 13. Друк і зменшена анімація
+ * ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+@media print {
+	.site-header,
+	.hero,
+	.sidebar,
+	.site-footer,
+	.to-top,
+	.post-navigation,
+	.pagination,
+	.comments,
+	.breadcrumbs,
+	.chips,
+	.entry__more {
+		display: none !important;
+	}
+
+	body {
+		background: #fff;
+		color: #000;
+		font-size: 11pt;
+	}
+
+	.layout {
+		display: block;
+	}
+
+	.entry__content a::after {
+		content: " (" attr(href) ")";
+		font-size: 0.85em;
+		word-break: break-all;
+	}
+}
+
+/* Виправлення: на десктопі кнопка підменю не має налазити на текст пункту. */
+@media (min-width: 1024px) {
+	.primary-nav .sub-menu li.menu-item-has-children > .menu-link {
+		padding-right: 2.25rem;
+	}
+
+	.primary-nav .sub-menu li.menu-item-has-children > .submenu-toggle {
+		top: 50%;
+		right: 0.25rem;
+		width: 28px;
+		height: 28px;
+		transform: translateY(-50%);
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * 14. Виправлення переповнення по горизонталі
+ * ------------------------------------------------------------------ */
+
+/*
+ * Поле пошуку успадковує width:100% від загального правила для input.
+ * У flex-рядку разом із кнопкою це давало суму понад 100% і горизонтальний
+ * скрол на вузьких екранах. flex-basis:0 + min-width:0 прибирають це.
+ */
+.search-form__field {
+	flex: 1 1 0;
+	width: auto;
+	min-width: 0;
+}
+
+/*
+ * Головна причина переповнення на цьому сайті: .sidebar, .entry-grid та
+ * колонки підвалу — це grid-контейнери, а grid-елементи за замовчуванням
+ * мають min-width:auto. Через це віджет із фіксованою шириною всередині
+ * (WordPress друкує <div class="wp-video" style="width:1024px">) розтягував
+ * доріжку до 1069px, і панель обрізалася. min-width:0 знімає це.
+ */
+.sidebar > *,
+.entry-grid > *,
+.content-widgets > *,
+.site-footer__widgets > *,
+.layout > * {
+	min-width: 0;
+}
+
+/* Вбудовані плеєри та зображення у віджетах не мають розпирати панель. */
+.widget * {
+	max-width: 100%;
+}
+
+.widget .wp-video,
+.widget .mejs-container,
+.widget video,
+.widget iframe {
+	width: 100% !important;
+	height: auto;
+}
+
+/* Довга назва парку у шапці на вузьких екранах. */
+@media (max-width: 600px) {
+	.brand__title {
+		font-size: var(--step--1);
+	}
+
+	.brand__logo img {
+		max-height: 40px;
+	}
+
+	.site-header__inner {
+		gap: 0.5rem;
+	}
+}
+
+/* Остання лінія оборони: жоден нащадок не розширює сторінку. */
+.site-content,
+.site-footer,
+.hero {
+	overflow-x: clip;
+}

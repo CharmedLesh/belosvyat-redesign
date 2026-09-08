@@ -1,63 +1,67 @@
-<?php 
-
+<?php
 /**
+ * Результати пошуку.
  *
- * search.php
- *
- * The search results template. Used when a search is performed.
- *
+ * @package Belosvyat
  */
 
-get_header(); ?>
-<div class="art-layout-wrapper">
-    <div class="art-content-layout">
-        <div class="art-content-layout-row">
-            <div class="art-layout-cell art-sidebar1">
-              <?php get_sidebar('default'); ?>
-              <div class="cleared"></div>
-            </div>
-            <div class="art-layout-cell art-content">
-			<?php get_sidebar('top'); ?>
-			<?php 
-				if(have_posts()) {
-				
-					theme_post_wrapper(
-			  			array('content' => '<h4 class="box-title">' . sprintf( __( 'Search Results for: %s', THEME_NS ), 
-			  				'<span class="search-query-string">' . get_search_query() . '</span>' ) . '</h4>' 
-			  			)
-			  		);
-				
-					/* Display navigation to next/previous pages when applicable */
-					if (theme_get_option('theme_top_posts_navigation')) {
-						theme_page_navigation();
-					}
-					
-					/* Start the Loop */ 
-					while (have_posts()) {
-						the_post();
-						get_template_part('content', get_post_format());
-					}
-					
-					/* Display navigation to next/previous pages when applicable */
-					if (theme_get_option('theme_bottom_posts_navigation')) {
-						 theme_page_navigation();
-					}
-				
-				} else {
-					theme_404_content(
-						array(
-							'error_title' => __('Nothing Found', THEME_NS),
-							'error_message' => __('Sorry, but nothing matched your search criteria. Please try again with some different keywords.', THEME_NS)
-						)
-					);
-					 
-				} 
-		    ?>
-			<?php get_sidebar('bottom'); ?>
-              <div class="cleared"></div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="cleared"></div>
-<?php get_footer(); ?>
+defined( 'ABSPATH' ) || exit;
+
+get_header();
+?>
+
+<main id="main" class="content">
+
+	<?php belosvyat_breadcrumbs(); ?>
+
+	<header class="page-header">
+		<h1 class="page-header__title">
+			<?php
+			printf(
+				/* translators: %s — пошуковий запит. */
+				esc_html__( 'Результати пошуку: %s', 'belosvyat' ),
+				'<span class="page-header__query">' . esc_html( get_search_query() ) . '</span>'
+			);
+			?>
+		</h1>
+
+		<p class="page-header__description">
+			<?php
+			$belosvyat_found = (int) $wp_query->found_posts;
+
+			printf(
+				/* translators: %d — кількість знайдених матеріалів. */
+				esc_html__( 'Знайдено %1$d %2$s', 'belosvyat' ),
+				$belosvyat_found,
+				esc_html( belosvyat_plural( $belosvyat_found, 'матеріал', 'матеріали', 'матеріалів' ) )
+			);
+			?>
+		</p>
+
+		<div class="page-header__search"><?php get_search_form(); ?></div>
+	</header>
+
+	<?php if ( have_posts() ) : ?>
+
+		<div class="entry-grid">
+			<?php
+			while ( have_posts() ) {
+				the_post();
+				get_template_part( 'template-parts/content/content', get_post_format() );
+			}
+			?>
+		</div>
+
+		<?php belosvyat_pagination(); ?>
+
+	<?php else : ?>
+
+		<?php get_template_part( 'template-parts/content/content', 'none' ); ?>
+
+	<?php endif; ?>
+
+</main>
+
+<?php
+get_sidebar();
+get_footer();
