@@ -48,6 +48,20 @@ function belosvyat_enqueue_assets() {
 		)
 	);
 
+	// Карусель потрібна лише на сторінках-галереях.
+	if ( belosvyat_is_gallery_page() ) {
+		wp_enqueue_script(
+			'belosvyat-gallery',
+			BELOSVYAT_URI . '/assets/js/gallery.js',
+			array(),
+			belosvyat_asset_version( 'assets/js/gallery.js' ),
+			array(
+				'strategy'  => 'defer',
+				'in_footer' => true,
+			)
+		);
+	}
+
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}

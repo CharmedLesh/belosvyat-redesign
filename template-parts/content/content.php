@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 ?>
-<article id="post-<?php the_ID(); ?>" <?php post_class( 'entry entry--card' ); ?>>
+<article id="post-<?php the_ID(); ?>" <?php post_class( array( 'entry', 'entry--card', belosvyat_entry_orientation_class() ) ); ?>>
 
 	<?php belosvyat_entry_thumbnail(); ?>
 

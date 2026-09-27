@@ -306,6 +306,13 @@ button.submit:hover {
 	transition: box-shadow var(--transition);
 }
 
+@media (min-width: 1024px) {
+  .site-header {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+}
+
 .site-header.is-stuck {
 	box-shadow: var(--shadow);
 }
@@ -621,10 +628,6 @@ button.submit:hover {
 	background-size: cover;
 }
 
-.hero__inner {
-	max-width: 780px;
-}
-
 .hero__eyebrow {
 	margin: 0 0 0.75rem;
 	color: rgb(255 255 255 / 78%);
@@ -902,16 +905,19 @@ button.submit:hover {
 	text-decoration: underline;
 }
 
-/* На широких екранах картка у стрічці з панеллю — горизонтальна. */
+/* Розкладку картки задає орієнтація мініатюри (клас додає PHP).
+   До 700px будь-яка картка лишається вертикальною: зображення зверху. */
 @media (min-width: 700px) {
-	.has-sidebar .entry--card {
-		grid-template-columns: 300px minmax(0, 1fr);
+	/* Вертикальне фото — ліворуч від тексту, щоб не розтягувати картку вгору. */
+	.entry--card.entry--portrait {
+		grid-template-columns: minmax(0, clamp(140px, 38%, 320px)) minmax(0, 1fr);
 		grid-template-rows: none;
 	}
 
-	.has-sidebar .entry--card .entry__media,
-	.has-sidebar .entry--card .entry__media--placeholder {
+	.entry--card.entry--portrait .entry__media,
+	.entry--card.entry--portrait .entry__media--placeholder {
 		height: 100%;
+		min-height: 260px;
 		aspect-ratio: auto;
 	}
 }
@@ -1080,8 +1086,8 @@ button.submit:hover {
 @media (min-width: 1024px) {
 	.sidebar {
 		position: sticky;
-		top: 92px;
-		max-height: calc(100vh - 108px);
+		top: 150px;
+		max-height: calc(100vh - 180px);
 		overflow-y: auto;
 		overscroll-behavior: contain;
 	}
@@ -1145,6 +1151,19 @@ button.submit:hover {
 	border-radius: var(--radius-sm);
 }
 
+/* Зображення-блок у віджеті (напр. «Кадастрова карта») — по центру колонки. */
+.widget .wp-block-image {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+  margin-bottom: 0;
+}
+
+.wp-block-image figcaption {
+  margin-bottom: 0;
+}
+
 /* Календар — частий віджет на цьому сайті. */
 .widget .wp-block-calendar table,
 .widget #wp-calendar {
@@ -1172,6 +1191,12 @@ button.submit:hover {
 
 .widget #wp-calendar td a {
 	font-weight: 700;
+}
+
+.widget_media_image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .content-widgets {
@@ -1546,6 +1571,10 @@ label {
 	height: auto;
 }
 
+.carousel__link img {
+  height: 100%;
+}
+
 /* Інлайнові розміри зі старого редактора не мають розпирати колонку. */
 .entry__content img[width],
 .entry__content img[height] {
@@ -1725,7 +1754,229 @@ tbody tr:nth-child(even) {
 }
 
 /* ------------------------------------------------------------------ *
- * 13. Друк і зменшена анімація
+ * 13. Карусель галереї та перегляд зображень
+ * ------------------------------------------------------------------ */
+
+.carousel {
+	position: relative;
+	margin-block: 1.5rem;
+}
+
+/* display: flex перебиває вбудоване [hidden], тому повертаємо приховування
+   явно — інакше невидима накладка перехоплювала б кліки по сторінці. */
+.carousel [hidden],
+.lightbox[hidden],
+.lightbox [hidden] {
+	display: none;
+}
+
+/* Селектори з двох класів — щоб перебити відступи списків із .entry__content
+   (.entry__content ul { padding-left: 1.4rem } зсувало перший слайд). */
+.carousel .carousel__track {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: 100%;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x mandatory;
+	/* Смуга прокрутки під каруселлю зайва — гортають кнопками чи свайпом. */
+	scrollbar-width: none;
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-lg);
+	background: var(--c-surface);
+}
+
+.carousel .carousel__track::-webkit-scrollbar {
+	display: none;
+}
+
+.carousel .carousel__slide {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	scroll-snap-align: start;
+}
+
+.carousel__link {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* Однакова висота для будь-якої орієнтації: картинка вписується цілком. */
+	/* aspect-ratio: 3 / 2; */
+	max-height: 70vh;
+	/* padding: 0.5rem; */
+	cursor: zoom-in;
+  height: 100%;
+}
+
+.carousel__image {
+	width: auto;
+	max-width: 100%;
+	height: 100%;
+	max-height: 100%;
+	border-radius: var(--radius-sm);
+	object-fit: cover;
+}
+
+/* Кнопки з'являються лише коли карусель ожила (є JS). */
+.carousel__nav {
+	position: absolute;
+	top: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	color: var(--c-primary-dark);
+	font-size: 1.75rem;
+	line-height: 1;
+	background: rgb(255 255 255 / 88%);
+	border: 1px solid var(--c-line);
+	border-radius: var(--radius-pill);
+	box-shadow: var(--shadow);
+	cursor: pointer;
+	transform: translateY(-50%);
+	transition: background var(--transition), opacity var(--transition);
+}
+
+.carousel__nav:hover,
+.carousel__nav:focus-visible {
+	background: var(--c-white);
+}
+
+.carousel__nav[disabled] {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.carousel__nav--prev {
+	left: 0.65rem;
+}
+
+.carousel__nav--next {
+	right: 0.65rem;
+}
+
+/* Накладка перегляду. */
+.lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: clamp(1rem, 4vw, 3rem);
+	background: rgb(20 36 32 / 92%);
+}
+
+.lightbox__dialog {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.75rem;
+	width: 100%;
+	max-width: 1200px;
+}
+
+.lightbox__figure {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	max-width: 100%;
+}
+
+.lightbox__image {
+	max-width: 100%;
+	max-height: 80vh;
+	width: auto;
+	height: auto;
+	border-radius: var(--radius);
+	background: var(--c-white);
+}
+
+.lightbox__counter {
+	margin: 0;
+	color: var(--c-white);
+	font-size: var(--step--1);
+}
+
+.lightbox__close,
+.lightbox__nav {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	color: var(--c-ink);
+	font-size: 1.75rem;
+	line-height: 1;
+	background: rgb(255 255 255 / 90%);
+	border: 0;
+	border-radius: var(--radius-pill);
+	box-shadow: var(--shadow);
+	cursor: pointer;
+}
+
+.lightbox__close:hover,
+.lightbox__close:focus-visible,
+.lightbox__nav:hover,
+.lightbox__nav:focus-visible {
+	background: var(--c-white);
+}
+
+/* Кнопка закриття прив'язана до вікна, а не до діалогу: висота діалогу
+   залежить від пропорцій зображення, тож у кутку діалогу кнопка стрибала б
+   щоразу при зміні слайда. */
+.lightbox__close {
+	position: fixed;
+	top: clamp(0.75rem, 2vw, 1.5rem);
+	right: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.lightbox__nav--prev {
+	top: 50%;
+	left: -0.5rem;
+	transform: translateY(-50%);
+}
+
+.lightbox__nav--next {
+	top: 50%;
+	right: -0.5rem;
+	transform: translateY(-50%);
+}
+
+/* Сторінка під накладкою не має прокручуватися. */
+body.lightbox-open {
+	overflow: hidden;
+}
+
+@media (max-width: 600px) {
+	.lightbox__nav--prev {
+		top: auto;
+		bottom: -3.5rem;
+		left: 25%;
+		transform: none;
+	}
+
+	.lightbox__nav--next {
+		top: auto;
+		right: 25%;
+		bottom: -3.5rem;
+		transform: none;
+	}
+}
+
+/* ------------------------------------------------------------------ *
+ * 14. Друк і зменшена анімація
  * ------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1791,7 +2042,7 @@ tbody tr:nth-child(even) {
 }
 
 /* ------------------------------------------------------------------ *
- * 14. Виправлення переповнення по горизонталі
+ * 15. Виправлення переповнення по горизонталі
  * ------------------------------------------------------------------ */
 
 /*

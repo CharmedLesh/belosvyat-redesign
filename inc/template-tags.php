@@ -8,32 +8,130 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Мініатюра запису з ланцюжком запасних варіантів.
+ * Шлях запасного зображення відносно теки завантажень (wp-content/uploads).
+ *
+ * @return string
+ */
+function belosvyat_fallback_thumbnail_path() {
+	/**
+	 * Дозволяє змінити файл-заглушку без правки теми.
+	 *
+	 * @param string $path Шлях відносно теки завантажень.
+	 */
+	return ltrim( (string) apply_filters( 'belosvyat_fallback_thumbnail_path', '2018/02/NPP_1.jpg' ), '/' );
+}
+
+/**
+ * ID вкладення запасного зображення (щоб отримати потрібний розмір і srcset).
+ *
+ * Пошук за URL відносно дорогий, тому результат кешуємо на добу.
+ *
+ * @return int ID вкладення або 0, якщо в медіатеці його немає.
+ */
+function belosvyat_fallback_thumbnail_id() {
+	static $cached = null;
+
+	if ( null !== $cached ) {
+		return $cached;
+	}
+
+	$transient = get_transient( 'belosvyat_fallback_thumbnail_id' );
+
+	if ( false !== $transient ) {
+		$cached = (int) $transient;
+
+		return $cached;
+	}
+
+	$uploads = wp_get_upload_dir();
+	$url     = trailingslashit( $uploads['baseurl'] ) . belosvyat_fallback_thumbnail_path();
+	$cached  = (int) attachment_url_to_postid( $url );
+
+	set_transient( 'belosvyat_fallback_thumbnail_id', $cached, DAY_IN_SECONDS );
+
+	return $cached;
+}
+
+/**
+ * Джерело запасного зображення.
+ *
+ * @return array Ключі id, url, width, height.
+ */
+function belosvyat_fallback_thumbnail_source() {
+	$source = array(
+		'id'     => belosvyat_fallback_thumbnail_id(),
+		'url'    => '',
+		'width'  => 0,
+		'height' => 0,
+	);
+
+	if ( $source['id'] ) {
+		return $source;
+	}
+
+	// Файл є на диску, але поза медіатекою — віддаємо його прямим посиланням.
+	$uploads = wp_get_upload_dir();
+	$path    = belosvyat_fallback_thumbnail_path();
+
+	if ( file_exists( trailingslashit( $uploads['basedir'] ) . $path ) ) {
+		$source['url'] = trailingslashit( $uploads['baseurl'] ) . $path;
+	}
+
+	return $source;
+}
+
+/**
+ * ID вкладення за URL, з урахуванням суфікса розміру (-300x295).
+ *
+ * @param string $url Посилання на файл.
+ * @return int ID вкладення або 0.
+ */
+function belosvyat_attachment_id_from_url( $url ) {
+	static $cache = array();
+
+	if ( isset( $cache[ $url ] ) ) {
+		return $cache[ $url ];
+	}
+
+	$clean = strtok( $url, '?' );
+	$id    = (int) attachment_url_to_postid( $clean );
+
+	if ( ! $id ) {
+		$full = preg_replace( '#-\d+x\d+(?=\.[a-z0-9]+$)#i', '', $clean );
+
+		if ( $full !== $clean ) {
+			$id = (int) attachment_url_to_postid( $full );
+		}
+	}
+
+	$cache[ $url ] = $id;
+
+	return $id;
+}
+
+/**
+ * Джерело мініатюри запису з ланцюжком запасних варіантів.
  *
  * Більшість архівних записів створені до появи «зображення запису», тому
  * послідовно перевіряємо: зображення запису → перше вкладення → перший <img>
  * у тексті. Це поведінка старої theme_get_post_thumbnail(), збережена свідомо:
  * без неї сітка карток на архівах була б майже порожня.
  *
- * @param string $size Розмір зображення.
- * @return string HTML тега <img> або порожній рядок.
+ * @param int $post_id ID запису.
+ * @return array Ключі id, url, width, height.
  */
-function belosvyat_get_thumbnail_html( $size = 'belosvyat-card' ) {
-	$post_id = get_the_ID();
-
-	if ( ! $post_id ) {
-		return '';
-	}
-
-	$attr = array(
-		'alt'      => '',
-		'loading'  => 'lazy',
-		'decoding' => 'async',
-		'class'    => 'entry__image',
+function belosvyat_get_thumbnail_source( $post_id ) {
+	$source = array(
+		'id'     => 0,
+		'url'    => '',
+		'width'  => 0,
+		'height' => 0,
 	);
 
 	if ( has_post_thumbnail( $post_id ) ) {
-		return get_the_post_thumbnail( $post_id, $size, $attr );
+		$source['id'] = (int) get_post_thumbnail_id( $post_id );
+
+		return $source;
 	}
 
 	$attachments = get_children(
@@ -50,24 +148,144 @@ function belosvyat_get_thumbnail_html( $size = 'belosvyat-card' ) {
 
 	if ( ! empty( $attachments ) ) {
 		$attachment = reset( $attachments );
-		$html       = wp_get_attachment_image( $attachment->ID, $size, false, $attr );
 
-		if ( $html ) {
-			return $html;
-		}
+		$source['id'] = (int) $attachment->ID;
+
+		return $source;
 	}
 
 	// Останній шанс: перший <img> просто в тексті запису.
 	$content = get_post_field( 'post_content', $post_id );
 
-	if ( $content && preg_match( '#<img[^>]+src=["\']([^"\']+)["\']#i', $content, $matches ) ) {
-		return sprintf(
-			'<img src="%s" alt="" loading="lazy" decoding="async" class="entry__image" />',
-			esc_url( $matches[1] )
+	if ( ! $content || ! preg_match( '#<img[^>]+>#i', $content, $tag ) ) {
+		return $source;
+	}
+
+	if ( ! preg_match( '#\ssrc=["\']([^"\']+)["\']#i', $tag[0], $src ) ) {
+		return $source;
+	}
+
+	// Редактор лишає width/height у розмітці — цього досить, щоб визначити
+	// орієнтацію без зайвого запиту до бази.
+	$has_width  = preg_match( '#\swidth=["\']?(\d+)#i', $tag[0], $width );
+	$has_height = preg_match( '#\sheight=["\']?(\d+)#i', $tag[0], $height );
+
+	if ( $has_width && $has_height ) {
+		$source['url']    = $src[1];
+		$source['width']  = (int) $width[1];
+		$source['height'] = (int) $height[1];
+
+		return $source;
+	}
+
+	// Розмірів у розмітці немає — шукаємо вкладення, щоб узяти їх із медіатеки.
+	$source['id'] = belosvyat_attachment_id_from_url( $src[1] );
+
+	if ( ! $source['id'] ) {
+		$source['url'] = $src[1];
+	}
+
+	return $source;
+}
+
+/**
+ * Мініатюра запису: розмітка та орієнтація зображення.
+ *
+ * @param string $size Розмір зображення.
+ * @return array Ключі html, orientation, is_fallback.
+ */
+function belosvyat_get_thumbnail_info( $size = 'belosvyat-card' ) {
+	static $cache = array();
+
+	$post_id = get_the_ID();
+	$key     = $post_id . ':' . ( is_array( $size ) ? implode( 'x', $size ) : $size );
+
+	if ( isset( $cache[ $key ] ) ) {
+		return $cache[ $key ];
+	}
+
+	$info = array(
+		'html'        => '',
+		'orientation' => 'landscape',
+		'is_fallback' => false,
+	);
+
+	if ( ! $post_id ) {
+		return $info;
+	}
+
+	$attr = array(
+		'alt'      => '',
+		'loading'  => 'lazy',
+		'decoding' => 'async',
+		'class'    => 'entry__image',
+	);
+
+	$source = belosvyat_get_thumbnail_source( $post_id );
+
+	if ( ! $source['id'] && '' === $source['url'] ) {
+		$source              = belosvyat_fallback_thumbnail_source();
+		$info['is_fallback'] = true;
+		$attr['class']      .= ' entry__image--fallback';
+	}
+
+	if ( $source['id'] ) {
+		$info['html'] = wp_get_attachment_image( $source['id'], $size, false, $attr );
+
+		$full = wp_get_attachment_image_src( $source['id'], 'full' );
+
+		if ( $full ) {
+			$source['width']  = (int) $full[1];
+			$source['height'] = (int) $full[2];
+		}
+	} elseif ( '' !== $source['url'] ) {
+		$attributes = '';
+
+		foreach ( $attr as $name => $value ) {
+			$attributes .= sprintf( ' %s="%s"', esc_attr( $name ), esc_attr( $value ) );
+		}
+
+		$info['html'] = sprintf(
+			'<img src="%s"%s />',
+			esc_url( $source['url'] ),
+			$attributes // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Атрибути екрановані вище.
 		);
 	}
 
-	return '';
+	if ( $source['width'] && $source['height'] && $source['height'] > $source['width'] ) {
+		$info['orientation'] = 'portrait';
+	}
+
+	$cache[ $key ] = $info;
+
+	return $info;
+}
+
+/**
+ * Мініатюра запису з ланцюжком запасних варіантів.
+ *
+ * @param string $size Розмір зображення.
+ * @return string HTML тега <img> або порожній рядок.
+ */
+function belosvyat_get_thumbnail_html( $size = 'belosvyat-card' ) {
+	$info = belosvyat_get_thumbnail_info( $size );
+
+	return $info['html'];
+}
+
+/**
+ * Клас картки за орієнтацією мініатюри.
+ *
+ * Вертикальні зображення ставимо збоку від тексту, горизонтальні — над ним.
+ * Саму розкладку вмикає CSS від 700px, на мобільних зображення завжди зверху.
+ *
+ * @param string $size Розмір зображення.
+ * @return string
+ */
+function belosvyat_entry_orientation_class( $size = 'belosvyat-card' ) {
+	$info = belosvyat_get_thumbnail_info( $size );
+
+	return 'portrait' === $info['orientation'] ? 'entry--portrait' : 'entry--landscape';
 }
 
 /**
@@ -76,17 +294,19 @@ function belosvyat_get_thumbnail_html( $size = 'belosvyat-card' ) {
  * @param string $size Розмір зображення.
  */
 function belosvyat_entry_thumbnail( $size = 'belosvyat-card' ) {
-	$html = belosvyat_get_thumbnail_html( $size );
+	$info = belosvyat_get_thumbnail_info( $size );
 
-	if ( '' === $html ) {
+	// Немає ані власного зображення, ані файлу-заглушки — лишаємо порожній блок.
+	if ( '' === $info['html'] ) {
 		echo '<div class="entry__media entry__media--placeholder" aria-hidden="true"></div>';
 		return;
 	}
 
 	printf(
-		'<a class="entry__media" href="%s" tabindex="-1" aria-hidden="true">%s</a>',
+		'<a class="entry__media%s" href="%s" tabindex="-1" aria-hidden="true">%s</a>',
+		$info['is_fallback'] ? ' entry__media--fallback' : '',
 		esc_url( get_permalink() ),
-		$html // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML зображення від WordPress.
+		$info['html'] // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML зображення від WordPress.
 	);
 }
 
@@ -324,4 +544,26 @@ function belosvyat_plural( $number, $one, $few, $many ) {
 	}
 
 	return $many;
+}
+
+/**
+ * Чи ховати службовий заголовок сторінки.
+ *
+ * На кількох сторінках назва продубльована першим рядком самого тексту, тож
+ * заголовок теми лише повторює її. Ховаємо його візуально — у розмітці <h1>
+ * лишається для читалок і пошукових систем.
+ *
+ * Список ведемо за слагами, а не за ID: слаг однаковий і локально, і на бою.
+ *
+ * @return bool
+ */
+function belosvyat_page_title_is_hidden() {
+	/**
+	 * Слаги сторінок, де заголовок дублює текст.
+	 *
+	 * @param array $slugs Слаги сторінок.
+	 */
+	$slugs = apply_filters( 'belosvyat_hidden_page_titles', array( 'sklad-viddilu-2' ) );
+
+	return ! empty( $slugs ) && is_page( $slugs );
 }

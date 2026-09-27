@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class( 'entry entry--page' ); ?>>
 
-	<header class="entry__header">
+	<header class="entry__header<?php echo belosvyat_page_title_is_hidden() ? ' screen-reader-text' : ''; ?>">
 		<h1 class="entry__title"><?php the_title(); ?></h1>
 	</header>
 

@@ -28,3 +28,4 @@ require_once BELOSVYAT_DIR . '/inc/template-tags.php';
 require_once BELOSVYAT_DIR . '/inc/customizer.php';
 require_once BELOSVYAT_DIR . '/inc/shortcodes.php';
 require_once BELOSVYAT_DIR . '/inc/legacy-content.php';
+require_once BELOSVYAT_DIR . '/inc/gallery.php';
