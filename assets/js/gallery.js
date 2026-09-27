@@ -31,6 +31,7 @@
 		overlay.innerHTML =
 			'<div class="lightbox__dialog">' +
 				'<figure class="lightbox__figure"><img class="lightbox__image" src="" alt="" /></figure>' +
+				'<p class="lightbox__caption"></p>' +
 				'<p class="lightbox__counter" aria-live="polite"></p>' +
 				'<button class="lightbox__close" type="button"><span aria-hidden="true">&times;</span></button>' +
 				'<button class="lightbox__nav lightbox__nav--prev" type="button"><span aria-hidden="true">&lsaquo;</span></button>' +
@@ -38,6 +39,7 @@
 			'</div>';
 
 		var image = overlay.querySelector( '.lightbox__image' );
+		var caption = overlay.querySelector( '.lightbox__caption' );
 		var counter = overlay.querySelector( '.lightbox__counter' );
 		var closeButton = overlay.querySelector( '.lightbox__close' );
 		var prevButton = overlay.querySelector( '.lightbox__nav--prev' );
@@ -56,6 +58,8 @@
 
 			image.src = item.href;
 			image.alt = item.alt;
+			caption.textContent = item.caption || '';
+			caption.hidden = ! item.caption;
 			counter.textContent = ( current + 1 ) + ' / ' + items.length;
 
 			var single = items.length < 2;
@@ -154,6 +158,53 @@
 	}
 
 	/**
+	 * Дані одного зображення для накладки.
+	 *
+	 * @param {Element} cell Слайд каруселі або комірка мозаїки.
+	 * @return {Object} href, alt, caption.
+	 */
+	function readItem( cell ) {
+		var link = cell.querySelector( '.carousel__link, .mosaic__link' );
+		var img = cell.querySelector( 'img' );
+		var caption = cell.querySelector( '.mosaic__caption' );
+
+		return {
+			href: link ? link.getAttribute( 'href' ) : '',
+			alt: img ? img.getAttribute( 'alt' ) || '' : '',
+			caption: caption ? caption.textContent.trim() : ''
+		};
+	}
+
+	/**
+	 * Мозаїка: сітку будує CSS, звідси лише перегляд поверх сторінки.
+	 *
+	 * @param {Element} root     Контейнер мозаїки.
+	 * @param {Object}  lightbox API накладки.
+	 */
+	function initMosaic( root, lightbox ) {
+		var cells = Array.prototype.slice.call( root.querySelectorAll( '.mosaic__item' ) );
+
+		if ( ! cells.length ) {
+			return;
+		}
+
+		var items = cells.map( readItem );
+
+		cells.forEach( function ( cell, i ) {
+			var link = cell.querySelector( '.mosaic__link' );
+
+			if ( ! link ) {
+				return;
+			}
+
+			link.addEventListener( 'click', function ( event ) {
+				event.preventDefault();
+				lightbox.open( items, i, link );
+			} );
+		} );
+	}
+
+	/**
 	 * Одна карусель.
 	 *
 	 * Нескінченність зроблено клонами: перед першим слайдом стоїть копія
@@ -184,15 +235,7 @@
 		} );
 
 		// Дані для накладки збираємо до клонування — лише справжні слайди.
-		var items = slides.map( function ( slide ) {
-			var link = slide.querySelector( '.carousel__link' );
-			var img = slide.querySelector( 'img' );
-
-			return {
-				href: link ? link.getAttribute( 'href' ) : '',
-				alt: img ? img.getAttribute( 'alt' ) || '' : ''
-			};
-		} );
+		var items = slides.map( readItem );
 
 		/**
 		 * Клон слайда. Він службовий, тож ховаємо його від читалок і з таб-обходу.
@@ -316,13 +359,13 @@
 	}
 
 	function init() {
-		var carousels = document.querySelectorAll( '[data-carousel]' );
+		var galleries = Array.prototype.slice.call( document.querySelectorAll( '[data-carousel], [data-mosaic]' ) );
 
-		if ( ! carousels.length ) {
+		if ( ! galleries.length ) {
 			return;
 		}
 
-		var first = carousels[ 0 ];
+		var first = galleries[ 0 ];
 		var lightbox = createLightbox( {
 			close: first.getAttribute( 'data-label-close' ) || 'Close',
 			prev: first.getAttribute( 'data-label-prev' ) || 'Previous',
@@ -330,8 +373,12 @@
 			image: first.getAttribute( 'data-label-image' ) || 'Image'
 		} );
 
-		Array.prototype.forEach.call( carousels, function ( root ) {
-			initCarousel( root, lightbox );
+		galleries.forEach( function ( root ) {
+			if ( root.hasAttribute( 'data-mosaic' ) ) {
+				initMosaic( root, lightbox );
+			} else {
+				initCarousel( root, lightbox );
+			}
 		} );
 	}
 

@@ -48,8 +48,8 @@ function belosvyat_enqueue_assets() {
 		)
 	);
 
-	// Карусель потрібна лише на сторінках-галереях.
-	if ( belosvyat_is_gallery_page() ) {
+	// Карусель, мозаїка та перегляд зображень — лише на сторінках-галереях.
+	if ( belosvyat_is_gallery_page() || belosvyat_is_mosaic_page() ) {
 		wp_enqueue_script(
 			'belosvyat-gallery',
 			BELOSVYAT_URI . '/assets/js/gallery.js',

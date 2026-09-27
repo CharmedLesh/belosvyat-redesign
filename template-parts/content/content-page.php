@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 		<h1 class="entry__title"><?php the_title(); ?></h1>
 	</header>
 
-	<?php if ( has_post_thumbnail() ) : ?>
+	<?php if ( has_post_thumbnail() && ! belosvyat_page_thumbnail_is_hidden() ) : ?>
 		<figure class="entry__featured">
 			<?php the_post_thumbnail( 'belosvyat-hero', array( 'class' => 'entry__featured-image' ) ); ?>
 		</figure>

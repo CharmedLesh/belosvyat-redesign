@@ -289,6 +289,26 @@ function belosvyat_entry_orientation_class( $size = 'belosvyat-card' ) {
 }
 
 /**
+ * Чи ховати зображення запису на сторінці.
+ *
+ * Подекуди те саме зображення вставлене ще й у текст, тож шапка сторінки лише
+ * дублює його. Такі сторінки ведемо списком слагів — слаг однаковий і
+ * локально, і на бою, на відміну від ID.
+ *
+ * @return bool
+ */
+function belosvyat_page_thumbnail_is_hidden() {
+	/**
+	 * Слаги сторінок, де зображення запису дублює картинку з тексту.
+	 *
+	 * @param array $slugs Слаги сторінок.
+	 */
+	$slugs = apply_filters( 'belosvyat_hidden_page_thumbnails', array( 'elektronnij-kvitok' ) );
+
+	return ! empty( $slugs ) && is_page( $slugs );
+}
+
+/**
  * Виводить мініатюру як посилання на запис.
  *
  * @param string $size Розмір зображення.
