@@ -23,6 +23,24 @@ function belosvyat_defaults() {
 		'belosvyat_hero_cta_text' => 'Новини парку',
 		'belosvyat_hero_cta_url'  => '',
 		'belosvyat_footer_text'   => '© [year] Національний природний парк «Білобережжя Святослава»',
+
+		// Головна сторінка. Заголовки й підписи кнопок мають значення за
+		// замовчуванням, а описи порожні: розділ покаже лише заголовок, доки
+		// текст не заповнять у Кастомайзері.
+		'belosvyat_front_about_title' => 'Про парк',
+		'belosvyat_front_about_text'  => '',
+		'belosvyat_front_flora_title' => 'Рослинний світ',
+		'belosvyat_front_flora_text'  => '',
+		'belosvyat_front_flora_cta'   => 'Докладніше про флору',
+		'belosvyat_front_fauna_title' => 'Тваринний світ',
+		'belosvyat_front_fauna_text'  => '',
+		'belosvyat_front_fauna_cta'   => 'Докладніше про фауну',
+		'belosvyat_front_news_title'  => 'Новини парку',
+		'belosvyat_front_news_cta'    => 'Усі новини',
+		'belosvyat_front_tour_title'  => 'ВІАР-тур парком',
+		'belosvyat_front_tour_text'   => '',
+		'belosvyat_front_tour_url'    => '',
+
 	);
 }
 
@@ -152,6 +170,51 @@ function belosvyat_customize_register( $wp_customize ) {
 	);
 
 	$wp_customize->add_section(
+		'belosvyat_front',
+		array(
+			'title'       => __( 'Головна сторінка', 'belosvyat' ),
+			'description' => __( 'Тексти розділів на «/». Зображення підтягуються зі сторінок «Флора» та «Фауна», новини — з останніх записів.', 'belosvyat' ),
+			'priority'    => 35,
+		)
+	);
+
+	$belosvyat_front_fields = array(
+		'belosvyat_front_about_title' => array( 'text', 'sanitize_text_field', 'postMessage', __( 'Про парк: заголовок', 'belosvyat' ), '' ),
+		'belosvyat_front_about_text'  => array( 'textarea', 'wp_kses_post', 'postMessage', __( 'Про парк: текст', 'belosvyat' ), __( 'Порожньо — розділ покаже лише заголовок.', 'belosvyat' ) ),
+		'belosvyat_front_flora_title' => array( 'text', 'sanitize_text_field', 'postMessage', __( 'Рослини: заголовок', 'belosvyat' ), '' ),
+		'belosvyat_front_flora_text'  => array( 'textarea', 'wp_kses_post', 'postMessage', __( 'Рослини: текст', 'belosvyat' ), '' ),
+		'belosvyat_front_flora_cta'   => array( 'text', 'sanitize_text_field', 'refresh', __( 'Рослини: напис на кнопці', 'belosvyat' ), __( 'Кнопка веде на сторінку «Флора».', 'belosvyat' ) ),
+		'belosvyat_front_fauna_title' => array( 'text', 'sanitize_text_field', 'postMessage', __( 'Тварини: заголовок', 'belosvyat' ), '' ),
+		'belosvyat_front_fauna_text'  => array( 'textarea', 'wp_kses_post', 'postMessage', __( 'Тварини: текст', 'belosvyat' ), '' ),
+		'belosvyat_front_fauna_cta'   => array( 'text', 'sanitize_text_field', 'refresh', __( 'Тварини: напис на кнопці', 'belosvyat' ), __( 'Кнопка веде на сторінку «Фауна».', 'belosvyat' ) ),
+		'belosvyat_front_news_title'  => array( 'text', 'sanitize_text_field', 'postMessage', __( 'Новини: заголовок', 'belosvyat' ), '' ),
+		'belosvyat_front_news_cta'    => array( 'text', 'sanitize_text_field', 'refresh', __( 'Новини: напис на кнопці', 'belosvyat' ), __( 'Кнопка веде на сторінку записів.', 'belosvyat' ) ),
+		'belosvyat_front_tour_title'  => array( 'text', 'sanitize_text_field', 'postMessage', __( 'ВІАР-тур: заголовок', 'belosvyat' ), '' ),
+		'belosvyat_front_tour_text'   => array( 'textarea', 'wp_kses_post', 'postMessage', __( 'ВІАР-тур: текст', 'belosvyat' ), '' ),
+		'belosvyat_front_tour_url'    => array( 'url', 'esc_url_raw', 'refresh', __( 'ВІАР-тур: адреса панорами', 'belosvyat' ), __( 'Порожньо — адреса береться з iframe на сторінці «ВІАР-ТУР».', 'belosvyat' ) ),
+	);
+
+	foreach ( $belosvyat_front_fields as $belosvyat_key => $belosvyat_field ) {
+		$wp_customize->add_setting(
+			$belosvyat_key,
+			array(
+				'default'           => $defaults[ $belosvyat_key ],
+				'sanitize_callback' => $belosvyat_field[1],
+				'transport'         => $belosvyat_field[2],
+			)
+		);
+		$wp_customize->add_control(
+			$belosvyat_key,
+			array(
+				'label'       => $belosvyat_field[3],
+				'description' => $belosvyat_field[4],
+				'section'     => 'belosvyat_front',
+				'type'        => $belosvyat_field[0],
+			)
+		);
+	}
+
+	$wp_customize->add_section(
 		'belosvyat_footer',
 		array(
 			'title'    => __( 'Підвал', 'belosvyat' ),
@@ -197,6 +260,38 @@ function belosvyat_customize_register( $wp_customize ) {
 				},
 			)
 		);
+
+		$belosvyat_front_partials = array(
+			'belosvyat_front_about_title' => '.front-section--about .front-section__title',
+			'belosvyat_front_about_text'  => '.front-section--about .front-section__text',
+			'belosvyat_front_flora_title' => '.front-section--flora .front-section__title',
+			'belosvyat_front_flora_text'  => '.front-section--flora .front-section__text',
+			'belosvyat_front_fauna_title' => '.front-section--fauna .front-section__title',
+			'belosvyat_front_fauna_text'  => '.front-section--fauna .front-section__text',
+			'belosvyat_front_news_title'  => '.front-section--news .front-section__title',
+			'belosvyat_front_tour_title'  => '.front-section--tour .front-section__title',
+			'belosvyat_front_tour_text'   => '.front-section--tour .front-section__text',
+		);
+
+		foreach ( $belosvyat_front_partials as $belosvyat_key => $belosvyat_selector ) {
+			$wp_customize->selective_refresh->add_partial(
+				$belosvyat_key,
+				array(
+					'selector'        => $belosvyat_selector,
+					// Рендеримо так само, як на сервері, щоб перегляд не розходився
+					// з готовою сторінкою: ключі на _text — абзаци, решта — текст.
+					'render_callback' => static function ( $partial ) {
+						$value = belosvyat_option( $partial->id );
+
+						if ( '_text' === substr( $partial->id, -5 ) ) {
+							return wpautop( wp_kses_post( $value ) );
+						}
+
+						return esc_html( $value );
+					},
+				)
+			);
+		}
 	}
 }
 add_action( 'customize_register', 'belosvyat_customize_register' );

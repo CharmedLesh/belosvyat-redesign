@@ -55,6 +55,11 @@ add_action( 'widgets_init', 'belosvyat_widget_areas' );
  * @return bool
  */
 function belosvyat_has_sidebar() {
+	// Головна має власну структуру на всю ширину.
+	if ( belosvyat_is_static_front_page() ) {
+		return false;
+	}
+
 	if ( is_page_template( 'onecolumn-page.php' ) || is_404() || is_attachment() ) {
 		return false;
 	}

@@ -587,3 +587,84 @@ function belosvyat_page_title_is_hidden() {
 
 	return ! empty( $slugs ) && is_page( $slugs );
 }
+
+/**
+ * Адреса сторінки за слагом.
+ *
+ * @param string $slug Слаг сторінки.
+ * @return string Порожній рядок, якщо сторінки немає.
+ */
+function belosvyat_page_url_by_slug( $slug ) {
+	$page = get_page_by_path( $slug );
+
+	if ( ! $page instanceof WP_Post ) {
+		return '';
+	}
+
+	$url = get_permalink( $page );
+
+	return $url ? $url : '';
+}
+
+/**
+ * Адреса сторінки записів («Новини»).
+ *
+ * @return string
+ */
+function belosvyat_posts_page_url() {
+	$posts_page = (int) get_option( 'page_for_posts' );
+
+	if ( $posts_page ) {
+		$url = get_permalink( $posts_page );
+
+		if ( $url ) {
+			return $url;
+		}
+	}
+
+	return home_url( '/' );
+}
+
+/**
+ * Виводить текст розділу головної.
+ *
+ * Порожнє значення не виводимо зовсім, окрім перегляду в Кастомайзері: там
+ * контейнер має існувати, інакше живому оновленню нічого замінювати.
+ *
+ * @param string $key Ключ налаштування.
+ */
+function belosvyat_front_text( $key ) {
+	$value = (string) belosvyat_option( $key );
+
+	if ( '' === trim( $value ) && ! is_customize_preview() ) {
+		return;
+	}
+
+	printf(
+		'<div class="front-section__text">%s</div>',
+		wpautop( wp_kses_post( $value ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Очищено wp_kses_post().
+	);
+}
+
+/**
+ * Виводить кнопку розділу головної.
+ *
+ * Без адреси (сторінку видалили чи перейменували) кнопки не буде — краще
+ * розділ без кнопки, ніж посилання в нікуди.
+ *
+ * @param string $key Ключ налаштування з написом.
+ * @param string $url Адреса.
+ */
+function belosvyat_front_cta( $key, $url ) {
+	$label = trim( (string) belosvyat_option( $key ) );
+
+	if ( '' === $label || '' === trim( (string) $url ) ) {
+		return;
+	}
+
+	printf(
+		'<p class="front-section__cta"><a class="button button--ghost" href="%1$s">%2$s <span aria-hidden="true">&rarr;</span></a></p>',
+		esc_url( $url ),
+		esc_html( $label )
+	);
+}

@@ -119,6 +119,20 @@ function belosvyat_document_title_parts( $parts ) {
 add_filter( 'document_title_parts', 'belosvyat_document_title_parts' );
 
 /**
+ * Чи ми на статичній головній сторінці.
+ *
+ * Перевірка is_page() тут не зайва: поки «Налаштування → Читання» показують
+ * на «/» стрічку записів, is_front_page() там теж істинна. Пара умов означає
+ * саме «сторінка, призначена головною», тож код безпечно викладати ще до
+ * зміни налаштувань.
+ *
+ * @return bool
+ */
+function belosvyat_is_static_front_page() {
+	return is_front_page() && is_page();
+}
+
+/**
  * Додає корисні класи до <body>.
  *
  * @param array $classes Класи body.
@@ -127,7 +141,12 @@ add_filter( 'document_title_parts', 'belosvyat_document_title_parts' );
 function belosvyat_body_classes( $classes ) {
 	$classes[] = belosvyat_has_sidebar() ? 'has-sidebar' : 'no-sidebar';
 
-	if ( is_front_page() && belosvyat_hero_is_enabled() ) {
+	if ( belosvyat_is_static_front_page() ) {
+		$classes[] = 'is-front';
+	}
+
+	// Банер тепер і на головній, і на стрічці новин.
+	if ( ( is_front_page() || is_home() ) && belosvyat_hero_is_enabled() ) {
 		$classes[] = 'has-hero';
 	}
 

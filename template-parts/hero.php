@@ -1,6 +1,6 @@
 <?php
 /**
- * Банер на головній сторінці.
+ * Банер на головній сторінці та у стрічці новин.
  *
  * Фонове зображення береться з «Зображення шапки» (custom-header).
  * Якщо його не задано — використовується градієнт у кольорах теми.
@@ -20,9 +20,17 @@ if ( '' === trim( (string) $belosvyat_title ) ) {
 	$belosvyat_title = belosvyat_site_title();
 }
 
+// На стрічці новин <h1> належить заголовку сторінки, тож банер там — <p>.
+$belosvyat_title_tag = is_front_page() ? 'h1' : 'p';
+
 if ( '' === trim( (string) $belosvyat_cta_url ) ) {
-	$belosvyat_posts_page = (int) get_option( 'page_for_posts' );
-	$belosvyat_cta_url    = $belosvyat_posts_page ? get_permalink( $belosvyat_posts_page ) : '#content';
+	// Типова кнопка веде у стрічку новин, тому на самій стрічці її ховаємо:
+	// посилання на сторінку, де відвідувач уже перебуває, нічого не дає.
+	if ( is_home() ) {
+		$belosvyat_cta_text = '';
+	}
+
+	$belosvyat_cta_url = belosvyat_posts_page_url();
 }
 ?>
 <section class="hero<?php echo $belosvyat_hero_image ? ' hero--has-image' : ''; ?>"
@@ -33,7 +41,7 @@ if ( '' === trim( (string) $belosvyat_cta_url ) ) {
 	<div class="hero__inner container">
 		<p class="hero__eyebrow"><?php esc_html_e( 'Природно-заповідний фонд України', 'belosvyat' ); ?></p>
 
-		<h1 class="hero__title"><?php echo esc_html( $belosvyat_title ); ?></h1>
+		<<?php echo esc_attr( $belosvyat_title_tag ); ?> class="hero__title"><?php echo esc_html( $belosvyat_title ); ?></<?php echo esc_attr( $belosvyat_title_tag ); ?>>
 
 		<?php if ( $belosvyat_subtitle ) : ?>
 			<p class="hero__subtitle"><?php echo esc_html( $belosvyat_subtitle ); ?></p>

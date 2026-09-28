@@ -77,7 +77,7 @@ defined( 'ABSPATH' ) || exit;
 	</header>
 
 	<?php
-	if ( is_front_page() && ! is_paged() && belosvyat_hero_is_enabled() ) {
+	if ( ( is_front_page() || is_home() ) && ! is_paged() && belosvyat_hero_is_enabled() ) {
 		get_template_part( 'template-parts/hero' );
 	}
 	?>

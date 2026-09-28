@@ -160,19 +160,66 @@
 	/**
 	 * Дані одного зображення для накладки.
 	 *
-	 * @param {Element} cell Слайд каруселі або комірка мозаїки.
+	 * Підпис шукаємо в межах власної figure: у панелі мозаїки в одному слайді
+	 * лежить кілька зображень, і підпис сусіда брати не можна.
+	 *
+	 * @param {Element} link Посилання на зображення.
 	 * @return {Object} href, alt, caption.
 	 */
-	function readItem( cell ) {
-		var link = cell.querySelector( '.carousel__link, .mosaic__link' );
-		var img = cell.querySelector( 'img' );
-		var caption = cell.querySelector( '.mosaic__caption' );
+	function readItem( link ) {
+		var scope = link.closest( '.mosaic__figure, .carousel__slide' ) || link;
+		var img = link.querySelector( 'img' ) || scope.querySelector( 'img' );
+		var caption = scope.querySelector( '.mosaic__caption' );
 
 		return {
-			href: link ? link.getAttribute( 'href' ) : '',
+			href: link.getAttribute( 'href' ),
 			alt: img ? img.getAttribute( 'alt' ) || '' : '',
 			caption: caption ? caption.textContent.trim() : ''
 		};
+	}
+
+	/**
+	 * Збирає всі зображення контейнера й нумерує посилання.
+	 *
+	 * Номер кладемо в атрибут ще до клонування слайдів: клон успадкує його,
+	 * тож клік по клону відкриє те саме зображення, що й по оригіналі.
+	 *
+	 * @param {Element} container Доріжка каруселі або список мозаїки.
+	 * @return {Array} Дані зображень у порядку появи.
+	 */
+	function collectItems( container ) {
+		var links = Array.prototype.slice.call(
+			container.querySelectorAll( '.carousel__link, .mosaic__link' )
+		);
+
+		return links.map( function ( link, i ) {
+			link.setAttribute( 'data-lightbox-index', i );
+
+			return readItem( link );
+		} );
+	}
+
+	/**
+	 * Один делегований обробник замість обробника на кожному посиланні.
+	 *
+	 * Посилання в підписах не мають data-lightbox-index, тому closest() для них
+	 * дає null — і вікіпедійні посилання працюють як звичайні.
+	 *
+	 * @param {Element} container Доріжка каруселі або список мозаїки.
+	 * @param {Array}   items     Дані зображень.
+	 * @param {Object}  lightbox  API накладки.
+	 */
+	function bindLightbox( container, items, lightbox ) {
+		container.addEventListener( 'click', function ( event ) {
+			var link = event.target.closest ? event.target.closest( '[data-lightbox-index]' ) : null;
+
+			if ( ! link || ! container.contains( link ) ) {
+				return;
+			}
+
+			event.preventDefault();
+			lightbox.open( items, parseInt( link.getAttribute( 'data-lightbox-index' ), 10 ) || 0, link );
+		} );
 	}
 
 	/**
@@ -182,26 +229,11 @@
 	 * @param {Object}  lightbox API накладки.
 	 */
 	function initMosaic( root, lightbox ) {
-		var cells = Array.prototype.slice.call( root.querySelectorAll( '.mosaic__item' ) );
+		var items = collectItems( root );
 
-		if ( ! cells.length ) {
-			return;
+		if ( items.length ) {
+			bindLightbox( root, items, lightbox );
 		}
-
-		var items = cells.map( readItem );
-
-		cells.forEach( function ( cell, i ) {
-			var link = cell.querySelector( '.mosaic__link' );
-
-			if ( ! link ) {
-				return;
-			}
-
-			link.addEventListener( 'click', function ( event ) {
-				event.preventDefault();
-				lightbox.open( items, i, link );
-			} );
-		} );
 	}
 
 	/**
@@ -218,11 +250,24 @@
 	 */
 	function initCarousel( root, lightbox ) {
 		var track = root.querySelector( '[data-carousel-track]' );
+
+		if ( ! track ) {
+			return;
+		}
+
 		var prev = root.querySelector( '[data-carousel-prev]' );
 		var next = root.querySelector( '[data-carousel-next]' );
-		var slides = track ? Array.prototype.slice.call( track.children ) : [];
+		var slides = Array.prototype.slice.call( track.children );
 
-		if ( ! track || slides.length < 2 ) {
+		// Нумеруємо й прив'язуємо до клонування; у слайді-панелі зображень
+		// кілька, тому збираємо саме посилання, а не слайди.
+		var items = collectItems( track );
+
+		if ( items.length ) {
+			bindLightbox( track, items, lightbox );
+		}
+
+		if ( slides.length < 2 ) {
 			return;
 		}
 
@@ -234,9 +279,6 @@
 			}
 		} );
 
-		// Дані для накладки збираємо до клонування — лише справжні слайди.
-		var items = slides.map( readItem );
-
 		/**
 		 * Клон слайда. Він службовий, тож ховаємо його від читалок і з таб-обходу.
 		 *
@@ -245,27 +287,57 @@
 		 */
 		function cloneSlide( slide ) {
 			var clone = slide.cloneNode( true );
-			var link = clone.querySelector( '.carousel__link' );
 
 			clone.setAttribute( 'aria-hidden', 'true' );
 
-			if ( link ) {
+			Array.prototype.forEach.call( clone.querySelectorAll( 'a[href]' ), function ( link ) {
 				link.setAttribute( 'tabindex', '-1' );
-			}
+			} );
 
 			return clone;
 		}
 
-		track.insertBefore( cloneSlide( slides[ slides.length - 1 ] ), slides[ 0 ] );
-		track.appendChild( cloneSlide( slides[ 0 ] ) );
+		// Клонуємо весь набір з обох боків, а не по одному слайду: у стрічці на
+		// всю ширину екрана видно кілька слайдів одразу, тож за одним клоном
+		// зяяла б порожнеча. Для каруселі з одним слайдом у кадрі це нічого не
+		// змінює — просто клонів більше.
+		var leading = document.createDocumentFragment();
+		var trailing = document.createDocumentFragment();
+
+		slides.forEach( function ( slide ) {
+			leading.appendChild( cloneSlide( slide ) );
+			trailing.appendChild( cloneSlide( slide ) );
+		} );
+
+		track.insertBefore( leading, slides[ 0 ] );
+		track.appendChild( trailing );
 
 		var cells = Array.prototype.slice.call( track.children );
-		var first = 1;
-		var last = cells.length - 2;
+		var setSize = slides.length;
+		var first = setSize;
+		var last = setSize * 2 - 1;
 		var motionOk = ! ( window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches );
+
+		// Куди саме «прилипає» слайд, вирішує CSS: до початку доріжки чи до її
+		// центру. Читаємо це значення, щоб кнопки вели туди ж, куди й свайп.
+		var snapCentred = 0 === ( getComputedStyle( cells[ 0 ] ).scrollSnapAlign || '' ).indexOf( 'center' );
 
 		function offset( i ) {
 			return cells[ i ].offsetLeft - track.offsetLeft;
+		}
+
+		/**
+		 * Позиція прокрутки, за якої слайд опиняється на своєму місці.
+		 *
+		 * @param {number} i Номер комірки.
+		 * @return {number} Значення scrollLeft.
+		 */
+		function target( i ) {
+			if ( ! snapCentred ) {
+				return offset( i );
+			}
+
+			return offset( i ) - ( track.clientWidth - cells[ i ].offsetWidth ) / 2;
 		}
 
 		function currentCell() {
@@ -274,7 +346,7 @@
 			var distance = Infinity;
 
 			cells.forEach( function ( cell, i ) {
-				var delta = Math.abs( offset( i ) - position );
+				var delta = Math.abs( target( i ) - position );
 
 				if ( delta < distance ) {
 					distance = delta;
@@ -287,7 +359,7 @@
 
 		function goTo( i, smooth ) {
 			track.scrollTo( {
-				left: offset( i ),
+				left: target( i ),
 				behavior: smooth && motionOk ? 'smooth' : 'auto'
 			} );
 		}
@@ -297,17 +369,109 @@
 		}
 
 		/**
-		 * Прокрутка спинилася: якщо стоїмо на клоні — переставляємо на оригінал.
-		 * Це стосується і кнопок, і свайпу за край.
+		 * Ширина одного набору слайдів у пікселях.
+		 *
+		 * @return {number}
+		 */
+		function setWidth() {
+			return target( first + setSize ) - target( first );
+		}
+
+		/**
+		 * Прокрутка спинилася: якщо зайшли на клони — зсуваємо позицію рівно на
+		 * один набір. Зсув піксель у піксель, тож кадр не смикається навіть
+		 * тоді, коли в кадрі кілька слайдів.
 		 */
 		function normalize() {
 			var i = currentCell();
 
 			if ( i < first ) {
-				goTo( last, false );
+				track.scrollLeft += setWidth();
 			} else if ( i > last ) {
-				goTo( first, false );
+				track.scrollLeft -= setWidth();
 			}
+		}
+
+		// --- Автопрокрутка -------------------------------------------------
+		// Крок раз на data-carousel-autoplay мілісекунд, поки відвідувач не
+		// чіпає стрічку. Будь-яка взаємодія обнуляє відлік, і рахунок
+		// починається наново лише після того, як взаємодія скінчилася.
+		var autoplayDelay = parseInt( root.getAttribute( 'data-carousel-autoplay' ), 10 ) || 0;
+		var autoplayTimer = null;
+		var hovered = false;
+		var pressed = false;
+		// Прокрутку, яку почали ми самі, не вважаємо взаємодією.
+		var selfScroll = false;
+
+		function autoplayStop() {
+			if ( autoplayTimer ) {
+				window.clearInterval( autoplayTimer );
+				autoplayTimer = null;
+			}
+		}
+
+		/**
+		 * Перезапускає відлік з нуля — або лишає стрічку в спокої, поки на ній
+		 * курсор чи палець, поки вкладку сховано або поки відкрита накладка.
+		 */
+		function autoplayReset() {
+			autoplayStop();
+
+			if ( ! autoplayDelay || ! motionOk || hovered || pressed ) {
+				return;
+			}
+
+			autoplayTimer = window.setInterval( function () {
+				if ( document.hidden || document.body.classList.contains( 'lightbox-open' ) ) {
+					return;
+				}
+
+				selfScroll = true;
+				step( 1 );
+			}, autoplayDelay );
+		}
+
+		if ( autoplayDelay && motionOk ) {
+			root.addEventListener( 'mouseenter', function () {
+				hovered = true;
+				autoplayStop();
+			} );
+
+			root.addEventListener( 'mouseleave', function () {
+				hovered = false;
+				autoplayReset();
+			} );
+
+			root.addEventListener( 'pointerdown', function () {
+				pressed = true;
+				autoplayStop();
+			} );
+
+			// Палець могли відпустити вже за межами стрічки.
+			document.addEventListener( 'pointerup', function () {
+				if ( pressed ) {
+					pressed = false;
+					autoplayReset();
+				}
+			} );
+
+			document.addEventListener( 'pointercancel', function () {
+				if ( pressed ) {
+					pressed = false;
+					autoplayReset();
+				}
+			} );
+
+			// Повернення фокуса з накладки теж має перезапустити відлік.
+			root.addEventListener( 'focusin', autoplayReset );
+
+			document.addEventListener( 'visibilitychange', function () {
+				if ( document.hidden ) {
+					autoplayStop();
+				} else {
+					autoplayReset();
+				}
+			} );
 		}
 
 		var idle = null;
@@ -315,16 +479,28 @@
 		track.addEventListener( 'scroll', function () {
 			window.clearTimeout( idle );
 
+			// Гортання пальцем чи трекпадом — це взаємодія: відлік з нуля.
+			if ( ! selfScroll ) {
+				autoplayReset();
+			}
+
 			// 120 мс тиші = анімація (чи свайп) завершилася.
-			idle = window.setTimeout( normalize, 120 );
+			idle = window.setTimeout( function () {
+				selfScroll = false;
+				normalize();
+			}, 120 );
 		} );
 
 		prev.addEventListener( 'click', function () {
 			step( -1 );
+			selfScroll = true;
+			autoplayReset();
 		} );
 
 		next.addEventListener( 'click', function () {
 			step( 1 );
+			selfScroll = true;
+			autoplayReset();
 		} );
 
 		// Стрілки з клавіатури, коли фокус усередині каруселі.
@@ -335,27 +511,18 @@
 			} else if ( 'ArrowRight' === event.key ) {
 				event.preventDefault();
 				step( 1 );
-			}
-		} );
-
-		// Клік по слайду (зокрема по клону) відкриває оригінальне зображення.
-		cells.forEach( function ( cell, i ) {
-			var link = cell.querySelector( '.carousel__link' );
-
-			if ( ! link ) {
+			} else {
 				return;
 			}
 
-			var index = ( i - first + items.length ) % items.length;
-
-			link.addEventListener( 'click', function ( event ) {
-				event.preventDefault();
-				lightbox.open( items, index, link );
-			} );
+			selfScroll = true;
+			autoplayReset();
 		} );
 
 		// Старт — на першому справжньому слайді, а не на клоні перед ним.
 		goTo( first, false );
+
+		autoplayReset();
 	}
 
 	function init() {

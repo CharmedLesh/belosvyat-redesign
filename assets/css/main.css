@@ -9,12 +9,15 @@
  *   5. Банер
  *   6. Макет, «пігулки», хлібні крихти
  *   7. Картки записів
- *   8. Одиночний запис
- *   9. Бічна панель і віджети
- *  10. Підвал
- *  11. Коментарі, форми, пагінація
- *  12. Сумісність зі старим контентом
- *  13. Друк і зменшена анімація
+ *   8. Головна сторінка
+ *   9. Одиночний запис
+ *  10. Бічна панель і віджети
+ *  11. Підвал
+ *  12. Коментарі, форми, пагінація
+ *  13. Сумісність зі старим контентом
+ *  14. Галереї: карусель, мозаїка, перегляд зображень
+ *  15. Друк і зменшена анімація
+ *  16. Виправлення переповнення по горизонталі
  */
 
 /* ------------------------------------------------------------------ *
@@ -43,7 +46,7 @@
 	--shadow: 0 4px 6px -1px rgb(20 61 46 / 7%), 0 2px 4px -2px rgb(20 61 46 / 5%);
 	--shadow-lg: 0 12px 24px -8px rgb(20 61 46 / 14%), 0 4px 8px -4px rgb(20 61 46 / 8%);
 
-	--container: 1200px;
+	--container: 1600px;
 	--gutter: clamp(1rem, 4vw, 2rem);
 	--sidebar-width: 320px;
 	--layout-gap: clamp(1.75rem, 3vw, 3rem);
@@ -799,7 +802,7 @@ button.submit:hover {
 
 /* Без бічної панелі стрічка стає двоколонковою. */
 .no-sidebar .entry-grid {
-	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
 }
 
 .entry--card {
@@ -923,7 +926,137 @@ button.submit:hover {
 }
 
 /* ------------------------------------------------------------------ *
- * 8. Одиночний запис
+ * 8. Головна сторінка
+ * ------------------------------------------------------------------ */
+
+/* header.php відкриває .container.layout для всіх шаблонів, а розділам
+   головної потрібна повна ширина: смуги з тлом мають доходити до країв.
+   Обгортку нейтралізуємо, а вимірювання повертає .front-section__inner. */
+.is-front .site-content {
+	padding-block: 0;
+}
+
+.is-front .site-content > .container.layout {
+	max-width: none;
+	padding-inline: 0;
+	gap: 0;
+}
+
+.front-section {
+	padding-block: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.front-section--tint {
+	background: var(--c-sand-light);
+}
+
+.front-section__inner {
+	display: flex;
+	flex-direction: column;
+	gap: 1.25rem;
+}
+
+.front-section__title {
+	margin: 0;
+	font-size: var(--step-3);
+	line-height: 1.2;
+}
+
+/* На головній немає .entry__content, тож і його обмеження ширини (760px)
+   не діє — задаємо власну міру рядка. */
+.front-section__text {
+	max-width: 68ch;
+	color: var(--c-muted);
+}
+
+.front-section__text p {
+	margin: 0 0 0.9rem;
+}
+
+.front-section__text p:last-child {
+	margin-bottom: 0;
+}
+
+.front-section__cta {
+	margin: 0.4rem 0 0;
+}
+
+/* Три картки в ряд; .no-sidebar .entry-grid має ту саму вагу, тому
+   селектор із двох класів. */
+.entry-grid.entry-grid--preview {
+	margin-bottom: 0;
+}
+
+/* Картка анонсу не має розтягуватися через довгий заголовок чи текст:
+   зайве ховаємо з трикрапкою. */
+.entry-grid--preview .entry__title {
+	display: -webkit-box;
+	max-height: 120px;
+	overflow: hidden;
+	-webkit-line-clamp: 4;
+	line-clamp: 4;
+	-webkit-box-orient: vertical;
+}
+
+.entry-grid--preview .entry__excerpt {
+	overflow: hidden;
+}
+
+/* Рахуємо рядки саме в абзацах: кнопки поширення від плагіна лежать усередині
+   .entry__excerpt, і обрізати їх разом із текстом не можна. В анонсі показуємо
+   лише перший абзац — інакше кілька абзаців разом упиралися б у стелю 440px і
+   зрізали ті самі кнопки. */
+.entry-grid--preview .entry__excerpt p ~ p {
+	display: none;
+}
+
+.entry-grid--preview .entry__excerpt p {
+	display: -webkit-box;
+	max-height: 240px;
+	overflow: hidden;
+	-webkit-line-clamp: 8;
+	line-clamp: 8;
+	-webkit-box-orient: vertical;
+}
+
+@media (min-width: 1200px) {
+	.entry-grid.entry-grid--preview {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+/* width: 100% обов'язкова: .front-section__inner — колонковий flex, і без неї
+   карусель рахує ширину за вмістом (а доріжка «завширшки» з усі слайди), через
+   що вилазила б за колонку. */
+.front-section .carousel {
+	width: 100%;
+	max-width: 760px;
+}
+
+.front-section .carousel--rail,
+.front-section .carousel--panels {
+	max-width: var(--container);
+}
+
+.front-section__bleed {
+	margin-block: 1.5rem;
+}
+
+.front-tour {
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+	box-shadow: var(--shadow);
+}
+
+.front-tour__frame {
+	display: block;
+	width: 100%;
+	height: min(70vh, 600px);
+	border: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * 9. Одиночний запис
  * ------------------------------------------------------------------ */
 
 .entry--single,
@@ -1074,7 +1207,7 @@ button.submit:hover {
 }
 
 /* ------------------------------------------------------------------ *
- * 9. Бічна панель і віджети
+ * 10. Бічна панель і віджети
  * ------------------------------------------------------------------ */
 
 .sidebar {
@@ -1206,7 +1339,7 @@ button.submit:hover {
 }
 
 /* ------------------------------------------------------------------ *
- * 10. Підвал
+ * 11. Підвал
  * ------------------------------------------------------------------ */
 
 .site-footer {
@@ -1305,7 +1438,7 @@ button.submit:hover {
 }
 
 /* ------------------------------------------------------------------ *
- * 11. Коментарі, форми, пагінація
+ * 12. Коментарі, форми, пагінація
  * ------------------------------------------------------------------ */
 
 input[type="text"],
@@ -1558,7 +1691,7 @@ label {
 }
 
 /* ------------------------------------------------------------------ *
- * 12. Сумісність зі старим контентом
+ * 13. Сумісність зі старим контентом
  *
  * Записи 2012–2025 років містять розмітку старого редактора: float-
  * вирівнювання, [gallery], <table> з фіксованою шириною, інлайнові
@@ -1761,7 +1894,7 @@ tbody tr:nth-child(even) {
 }
 
 /* ------------------------------------------------------------------ *
- * 13. Галереї: карусель, мозаїка, перегляд зображень
+ * 14. Галереї: карусель, мозаїка, перегляд зображень
  * ------------------------------------------------------------------ */
 
 .carousel {
@@ -1829,6 +1962,63 @@ tbody tr:nth-child(even) {
 	max-height: 100%;
 	border-radius: var(--radius-sm);
 	object-fit: cover;
+}
+
+/* ---- Стрічка на всю ширину екрана (головна, розділ «Рослинний світ») ----
+   У кадрі стільки плиток, скільки вміщається, а крайні обрізає край екрана. */
+.carousel--rail .carousel__track {
+	grid-auto-columns: clamp(300px, 44vw, 640px);
+	gap: 0.75rem;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	/* proximity, а не mandatory: у стрічці жорстке прилипання заважає
+	   гортати пальцем на кілька плиток одразу. */
+	scroll-snap-type: x proximity;
+}
+
+/* Опорний слайд стрічки стоїть по центру екрана, а не біля лівого краю:
+   сусідні плитки визирають з обох боків. JS читає саме це значення, тож
+   кнопки гортають туди ж, куди й прилипає прокрутка. */
+.carousel.carousel--rail .carousel__slide {
+	scroll-snap-align: center;
+}
+
+.carousel--rail .carousel__link {
+	aspect-ratio: 4 / 3;
+	max-height: none;
+	overflow: hidden;
+	/* Плитки стрічки — з прямими кутами. */
+	border-radius: 0;
+}
+
+.carousel--rail .carousel__image {
+	width: 100%;
+	height: 100%;
+	border-radius: 0;
+	object-fit: cover;
+}
+
+/* Напівпрозорість задаємо кольору, а не елементу: opacity на кнопці
+   приглушила б і саму стрілку всередині. */
+.carousel--rail .carousel__nav {
+	background: color-mix(in srgb, var(--c-white) 80%, transparent);
+	border-color: color-mix(in srgb, var(--c-line) 80%, transparent);
+}
+
+.carousel--rail .carousel__nav:hover,
+.carousel--rail .carousel__nav:focus-visible {
+	background: var(--c-white);
+	border-color: var(--c-line);
+}
+
+/* Кнопки тримаємо ближче до краю екрана, а не до краю колонки. */
+.carousel--rail .carousel__nav--prev {
+	left: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+.carousel--rail .carousel__nav--next {
+	right: clamp(0.5rem, 2vw, 1.5rem);
 }
 
 /* Кнопки з'являються лише коли карусель ожила (є JS). */
@@ -2010,6 +2200,35 @@ ul.mosaic {
 	border: 0;
 }
 
+/* Панель мозаїки на головній: сітка жорстко 3×3, бо місце кожної комірки вже
+   пораховане в PHP (style="grid-area: …"). На /fauna сітка, навпаки, auto-fill.
+   Селектор із двох класів — інакше ul.mosaic вище переб'є колонки. */
+ul.mosaic.mosaic--panel {
+	--mosaic-panel-cell: clamp(130px, 14vw, 220px);
+
+	display: grid;
+	grid-template-columns: repeat(2, var(--mosaic-panel-cell));
+	grid-template-rows: repeat(2, var(--mosaic-panel-cell));
+	grid-auto-flow: row;
+	gap: 0.65rem;
+	margin: 0;
+	padding: 0;
+}
+
+/* Панель займає свою природну ширину (дві комірки), тож у кадрі їх стільки,
+   скільки вміщається, а не рівно одна на всю доріжку. */
+.carousel.carousel--panels .carousel__track {
+	grid-auto-columns: min-content;
+	gap: 0.65rem;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+}
+
+.carousel--panels .mosaic__figure {
+	border-radius: 0;
+}
+
 .mosaic .mosaic__item--wide {
 	grid-column: span 2;
 }
@@ -2092,7 +2311,7 @@ ul.mosaic {
 }
 
 /* ------------------------------------------------------------------ *
- * 14. Друк і зменшена анімація
+ * 15. Друк і зменшена анімація
  * ------------------------------------------------------------------ */
 
 @media (prefers-reduced-motion: reduce) {
@@ -2158,7 +2377,7 @@ ul.mosaic {
 }
 
 /* ------------------------------------------------------------------ *
- * 15. Виправлення переповнення по горизонталі
+ * 16. Виправлення переповнення по горизонталі
  * ------------------------------------------------------------------ */
 
 /*
