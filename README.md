@@ -32,6 +32,7 @@ assets/js/gallery.js     карусель, мозаїка та перегляд 
 tools/front-page-migration.php     одноразове перемикання на статичну головну
 tools/menu-restructure.php         одноразова перебудова головного меню
 docs/front-page-setup.md           як увімкнути головну та /news на бою
+docs/deploy.md                     як викласти тему на бій і відкотити
 ```
 
 ## Що успадковано від старої теми навмисно
@@ -73,4 +74,4 @@ docs/front-page-setup.md           як увімкнути головну та /
 
 ## Вимоги
 
-WordPress 6.5+, PHP 7.4+.
+WordPress 6.0+, PHP 7.4+.
